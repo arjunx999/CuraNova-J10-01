@@ -4,17 +4,21 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import upload from "./config/multer.js";
 import { uploadImage } from "./controllers/uploadController.js";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+app.use(express.json());
 
 connectDB();
 
 app.get("/", (req, res) => {
   res.send("hello world");
 });
+
+app.use("/auth", authRoutes);
 
 app.post("/upload", upload.single("image"), uploadImage);
 

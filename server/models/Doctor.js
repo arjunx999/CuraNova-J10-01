@@ -59,6 +59,12 @@ const doctorSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    verificationToken: {
+      type: String,
+    },
+    tokenExpire: {
+      type: Date,
+    },
     available_slots: [
       {
         day: {

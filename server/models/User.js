@@ -17,7 +17,7 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       minlength: 5,
-      maxlength: 30,
+      maxlength: 100,
     },
     isVerified: {
       type: Boolean,
@@ -26,6 +26,24 @@ const userSchema = mongoose.Schema(
     profilePicture: {
       type: String,
       required: true,
+    },
+    verificationToken: {
+      type: String,
+    },
+    tokenExpire: {
+      type: Date,
+    },
+    refreshToken: {
+      type: String,
+      default: null,
+    },
+    refreshTokenExpire: {
+      type: Date,
+      default: null,
+    },
+    expiresAt: {
+      type: Date,
+      index: { expires: 0 },
     },
   },
   { timestamps: true },
