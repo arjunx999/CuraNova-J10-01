@@ -17,7 +17,7 @@ const doctorSchema = mongoose.Schema(
       type: String,
       required: true,
       minlength: 5,
-      maxlength: 30,
+      maxlength: 100,
     },
     isVerified: {
       type: Boolean,
@@ -40,7 +40,7 @@ const doctorSchema = mongoose.Schema(
     about: {
       type: String,
       required: true,
-      minLength: 10,
+      minLength: 5,
       maxlength: 150,
     },
     rating: {
@@ -85,6 +85,18 @@ const doctorSchema = mongoose.Schema(
         },
       },
     ],
+    refreshToken: {
+      type: String,
+      default: null,
+    },
+    refreshTokenExpire: {
+      type: Date,
+      default: null,
+    },
+    expiresAt: {
+      type: Date,
+      index: { expires: 0 },
+    },
   },
   { timestamps: true },
 );
