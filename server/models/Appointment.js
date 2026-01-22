@@ -32,6 +32,11 @@ const appointmentSchema = mongoose.Schema(
       default: "na",
       required: true,
     },
+    slot: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Slot",
+      required: true,
+    },
   },
   { timestamps: true },
 );

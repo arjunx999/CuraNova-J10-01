@@ -65,26 +65,6 @@ const doctorSchema = mongoose.Schema(
     tokenExpire: {
       type: Date,
     },
-    available_slots: [
-      {
-        day: {
-          type: String,
-          required: true,
-        },
-        start_time: {
-          type: String,
-          required: true,
-        },
-        end_time: {
-          type: String,
-          required: true,
-        },
-        per_slot_duration: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
     refreshToken: {
       type: String,
       default: null,
