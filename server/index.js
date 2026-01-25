@@ -5,6 +5,7 @@ import { connectDB } from "./config/db.js";
 import upload from "./config/multer.js";
 import { uploadImage } from "./controllers/uploadController.js";
 import authRoutes from "./routes/authRoutes.js";
+import doctorRoutes from "./routes/doctorRoutes.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/doctor", doctorRoutes);
 
 app.post("/upload", upload.single("image"), uploadImage);
 
