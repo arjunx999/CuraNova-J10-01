@@ -5,6 +5,7 @@ import { Department } from "../models/Department.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import sgMail from "@sendgrid/mail";
+import redisClient from "../config/redisClient.js";
 
 export const dr_signup = async (req, res) => {
   try {
@@ -158,6 +159,15 @@ export const dr_verifyEmail = async (req, res) => {
     dr.expiresAt = undefined;
 
     await dr.save();
+
+    const normalizedDepartment = dr.department
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    await redisClient.del("all_doctors");
+    await redisClient.del(`department:${normalizedDepartment}:doctors`);
 
     return res
       .status(200)
