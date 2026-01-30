@@ -173,21 +173,25 @@ export const getDoctorDashboard = async (req, res) => {
         status: "completed",
       })
         .populate("patient", "name email")
+        .populate("slot", "date start_time end_time")
         .lean(),
 
-      Appointment.find({
-        doctor: dr_id,
-        date: { $gte: startOfDay, $lte: endOfDay },
-      })
+      Appointment.find({ doctor: dr_id })
         .populate("patient", "name email")
+        .populate({
+          path: "slot",
+          match: { date: { $gte: startOfDay, $lte: endOfDay } },
+          select: "date start_time end_time",
+        })
         .lean(),
 
-      Appointment.find({
-        doctor: dr_id,
-        date: { $gt: endOfDay },
-      })
-        .sort({ date: 1 })
+      Appointment.find({ doctor: dr_id })
         .populate("patient", "name email")
+        .populate({
+          path: "slot",
+          match: { date: { $gt: endOfDay } },
+          select: "date start_time end_time",
+        })
         .lean(),
 
       Slot.find({ doctor: dr_id, date: { $gte: startOfDay } }).lean(),
