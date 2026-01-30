@@ -3,6 +3,7 @@ import { Doctor } from "../models/Doctor.js";
 import { Slot } from "../models/Slot.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { sendConfirmation } from "../services/emailConfirmation.js";
 
 export const initiateAppointment = async (req, res) => {
   try {
@@ -168,6 +169,7 @@ export const verifyPayment = async (req, res) => {
     appointment.expiresAt = null;
 
     await appointment.save();
+    sendConfirmation(appointment.slot).catch(console.error);
 
     return res.status(200).json({
       success: true,
