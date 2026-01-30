@@ -12,14 +12,6 @@ const appointmentSchema = mongoose.Schema(
       ref: "Doctor",
       required: true,
     },
-    date: {
-      type: Date,
-      required: true,
-    },
-    start_time: {
-      type: String,
-      required: true,
-    },
     status: {
       type: String,
       enum: ["pending", "confirmed", "completed"],
@@ -36,6 +28,10 @@ const appointmentSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Slot",
       required: true,
+      unique: true,
+    },
+    expiresAt: {
+      type: Date,
     },
   },
   { timestamps: true },
