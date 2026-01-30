@@ -30,6 +30,11 @@ const appointmentSchema = mongoose.Schema(
       required: true,
       unique: true,
     },
+    summary: {
+      symptoms: [String],
+      notablePoints: [String],
+      possibleConcerns: [String],
+    },
     expiresAt: {
       type: Date,
     },
