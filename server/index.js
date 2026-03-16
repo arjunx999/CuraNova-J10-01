@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import "./utils/cronJobs.js";
+import "./workers/appointmentWorker.js";
 
 dotenv.config();
 

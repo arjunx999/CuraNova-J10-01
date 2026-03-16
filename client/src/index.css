@@ -1,0 +1,263 @@
+@import "tailwindcss";
+
+.gradient1 {
+  background:
+    radial-gradient(ellipse at top left, #ede9fe 0%, transparent 50%),
+    radial-gradient(ellipse at top right, #f5f3ff 0%, transparent 50%), #f5f4f0;
+}
+
+@media (max-width: 768px) {
+  /* .hiw-grid {
+    grid-template-columns: 1fr;
+  } */
+  .wcu-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .hiw-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+.blob1 {
+  background:
+    radial-gradient(
+      ellipse 60% 50% at 75% 20%,
+      rgba(155, 135, 245, 0.35) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 45% at 85% 60%,
+      rgba(124, 92, 232, 0.25) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 55% 40% at 20% 10%,
+      rgba(221, 214, 254, 0.35) 0%,
+      transparent 60%
+    );
+}
+
+.blob2 {
+  background:
+    radial-gradient(ellipse at 70% 40%, #ede9fe 0%, transparent 35%),
+    radial-gradient(ellipse at 90% 20%, #ddd6fe 0%, transparent 45%),
+    radial-gradient(ellipse at 60% 60%, #c4b5fd 0%, transparent 40%);
+
+  -webkit-mask-image:
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black 20%,
+      black 80%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 15%,
+      black 85%,
+      transparent 100%
+    );
+
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black 20%,
+      black 80%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 15%,
+      black 85%,
+      transparent 100%
+    );
+
+  -webkit-mask-composite: intersect;
+  mask-composite: intersect;
+}
+
+* {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  user-select: none;
+}
+
+.hiw-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px;
+  gap: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.hiw-pill {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  background: #141414;
+  border-radius: 999px;
+  z-index: 1;
+  pointer-events: none;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hiw-btn {
+  position: relative;
+  z-index: 2;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 10px 26px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #888;
+  white-space: nowrap;
+  transition: color 0.35s ease;
+}
+
+.hiw-btn--on {
+  color: #fff;
+}
+
+.hiw-grid {
+  /* display: grid;
+  grid-template-columns: repeat(4, 1fr); */
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  width: 100%;
+  animation: gridIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes gridIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hiw-card {
+  padding: 36px 32px 40px;
+  border-right: 1px solid #f0f0f0;
+  animation: cardIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) calc(var(--i) * 0.07s)
+    both;
+}
+
+.hiw-card:last-child {
+  border-right: none;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hiw-num {
+  display: block;
+  font-size: 52px;
+  font-weight: 300;
+  color: #e4e4e0;
+  line-height: 1;
+  letter-spacing: -2px;
+  margin-bottom: 28px;
+}
+
+.hiw-icon {
+  width: 44px;
+  height: 44px;
+  background: #ede9fe;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.hiw-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #141414;
+  margin-bottom: 10px;
+}
+
+.hiw-desc {
+  font-size: 14px;
+  color: #9a9a9a;
+  line-height: 1.65;
+}
+
+.wcu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.wcu-card {
+  background: #fff;
+  border-radius: 16px;
+  border-color: #e5e7eb;
+  padding: 20px 20px;
+  transition: all 200ms ease-in;
+  transform: translateZ(0);
+}
+
+.wcu-card:hover {
+  transform: scale(1.003) translateZ(0);
+  box-shadow: 0 10px 60px rgba(0, 0, 0, 0.07);
+}
+
+.wcu-card--purple {
+  border-color: #d4c9fb;
+  background: #ede9fe;
+}
+
+.wcu-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #9b87f5;
+  border: 1px solid #9b87f5;
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}
+
+.wcu-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #141414;
+  margin-bottom: 5px;
+}
+
+.wcu-desc {
+  font-size: 14px;
+  color: #9a9a9a;
+  line-height: 1.65;
+}

@@ -5,6 +5,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import { sendConfirmation } from "../services/emailConfirmation.js";
 import { summarizeSymptoms } from "../services/symptomSum.js";
+import { appointmentQueue } from "../queues/appointmentQueue.js";
 
 export const initiateAppointment = async (req, res) => {
   try {
@@ -170,7 +171,9 @@ export const verifyPayment = async (req, res) => {
     appointment.expiresAt = null;
 
     await appointment.save();
-    sendConfirmation(appointment.slot).catch(console.error);
+    await appointmentQueue.add("sendConfirmation", {
+      slotId: appointment.slot,
+    });
 
     return res.status(200).json({
       success: true,
@@ -209,17 +212,14 @@ export const symptomSummary = async (req, res) => {
       });
     }
 
-    const aiSummary = await summarizeSymptoms(patient_text);
-
-    appointment.aiSummary = {
-      ...aiSummary,
-    };
-
-    await appointment.save();
+    await appointmentQueue.add("summarizeSymptoms", {
+      patient_text,
+      appointmentId,
+    });
 
     return res.status(200).json({
       success: true,
-      data: appointment.aiSummary,
+      message: "Symptoms received, summary will be ready shortly",
     });
   } catch (error) {
     return res.status(500).json({
