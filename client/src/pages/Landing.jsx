@@ -361,10 +361,16 @@ const Landing = () => {
           </div>
 
           <div className="flex items-center gap-x-3">
-            <button className="px-4.5 py-2 text-sm text-white rounded-full transition-all duration-300 bg-black hover:bg-zinc-700 inline-flex items-center gap-2 cursor-pointer">
+            <button
+              onClick={() => Navigate("/auth/patient/signup")}
+              className="px-4.5 py-2 text-sm text-white rounded-full transition-all duration-300 bg-black hover:bg-zinc-700 inline-flex items-center gap-2 cursor-pointer"
+            >
               Find a doctor<span>→</span>
             </button>
-            <button className="px-4.5 py-2 text-sm text-[#515151] rounded-full bg-white transition-all duration-300 border-[1.5px] border-zinc-200 hover:text-[#7c5ce8] hover:border-[#9b87f53e] inline-flex items-center gap-2 cursor-pointer">
+            <button
+              onClick={() => Navigate("/auth/doctor/signup")}
+              className="px-4.5 py-2 text-sm text-[#515151] rounded-full bg-white transition-all duration-300 border-[1.5px] border-zinc-200 hover:text-[#7c5ce8] hover:border-[#9b87f53e] inline-flex items-center gap-2 cursor-pointer"
+            >
               Are you a doctor<span>→</span>
             </button>
           </div>
@@ -882,7 +888,7 @@ const Landing = () => {
               </p>
             </div>
             <p className="text-sm text-gray-400 mt-1">
-              No account needed to browse. Find a doctor in under a minute.
+              Quick signup, faster care. Find a doctor in under a minute.
             </p>
           </div>
           <div className="flex items-center gap-3">
