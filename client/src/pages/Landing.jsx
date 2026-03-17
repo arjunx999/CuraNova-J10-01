@@ -904,7 +904,6 @@ const Landing = () => {
 
       {/* footer */}
       <div className="w-full px-4 sm:px-8 md:px-26 my-10 flex items-center justify-between">
-        <h1 className="text-sm text-gray-400">CuraNova@2025</h1>
         <div className="flex items-center gap-4">
           <a
             href="https://github.com/arjunx999/"
