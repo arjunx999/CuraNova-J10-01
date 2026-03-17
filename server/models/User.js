@@ -45,6 +45,16 @@ const userSchema = mongoose.Schema(
       type: Date,
       index: { expires: 0 },
     },
+    weight: {
+      type: Number,
+      required: true,
+    },
+    age: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 120,
+    },
   },
   { timestamps: true },
 );

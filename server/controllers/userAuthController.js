@@ -7,7 +7,7 @@ import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 
 export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, weight, age } = req.body;
     const upload = await uploadToCloudinary(req.file.buffer);
     const imageUrl = upload.secure_url;
 
@@ -32,6 +32,8 @@ export const signup = async (req, res) => {
     const user = new User({
       name,
       email,
+      weight,
+      age,
       password: passwordHash,
       verificationToken: hashedToken,
       tokenExpire: new Date(Date.now() + 10 * 60 * 1000),
