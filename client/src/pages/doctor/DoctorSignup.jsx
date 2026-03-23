@@ -1,12 +1,14 @@
 import React, { useRef, useState } from "react";
 import logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 const DoctorSignup = () => {
   const Navigate = useNavigate();
   const fileRef = useRef();
   const [preview, setPreview] = useState(null);
   const [fileName, setFileName] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleFile = (e) => {
     const file = e.target.files[0];
@@ -153,28 +155,39 @@ const DoctorSignup = () => {
                         className="w-full px-3 py-2 text-sm rounded-lg bg-[#f8f8f8] border border-[#e6e6e6] focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition"
                       />
                     </div>
-                    <div>
+                    <div className="relative">
                       <label className="text-xs text-gray-500 block mb-1">
-                        Email
+                        Password
                       </label>
                       <input
-                        type="email"
-                        name="email"
-                        placeholder="you@example.com"
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder="••••••••"
                         required
-                        className="w-full px-3 py-2 text-sm rounded-lg bg-[#f8f8f8] border border-[#e6e6e6] focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition"
+                        className="w-full px-3 py-2 pr-9 text-sm rounded-lg bg-[#f8f8f8] border border-[#e6e6e6] focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition"
                       />
+                      <span
+                        className="absolute right-3 top-[68%] -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        title={showPassword ? "Hide Password" : "Show Password"}
+                      >
+                        {showPassword ? (
+                          <EyeOff size={15} />
+                        ) : (
+                          <Eye size={15} />
+                        )}
+                      </span>
                     </div>
                   </div>
 
                   <div>
                     <label className="text-xs text-gray-500 block mb-1">
-                      Password
+                      Email
                     </label>
                     <input
-                      type="password"
-                      name="password"
-                      placeholder="••••••••"
+                      type="email"
+                      name="email"
+                      placeholder="you@example.com"
                       required
                       className="w-full px-3 py-2 text-sm rounded-lg bg-[#f8f8f8] border border-[#e6e6e6] focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition"
                     />

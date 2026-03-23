@@ -206,9 +206,13 @@ export const dr_login = async (req, res) => {
     dr.refreshToken = refreshToken;
     dr.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    const token = jwt.sign({ id: dr._id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
+    const token = jwt.sign(
+      { id: dr._id, role: "doctor" },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "15m",
+      },
+    );
 
     await dr.save();
 
@@ -222,61 +226,17 @@ export const dr_login = async (req, res) => {
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
-      .json({
-        success: true,
-        message: "Login successful",
-        token,
-        dr: drWithoutPassword,
-      });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-export const dr_refresh = async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken;
-
-    if (!refreshToken) {
-      return res
-        .status(401)
-        .json({ success: false, message: "No refresh token provided" });
-    }
-
-    const dr = await Doctor.findOne({ refreshToken });
-    if (!dr) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Invalid refresh token provided" });
-    }
-
-    if (dr.refreshTokenExpire < Date.now()) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Refresh token expired" });
-    }
-
-    const token = jwt.sign({ id: dr._id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
-
-    const newRefreshToken = crypto.randomBytes(40).toString("hex");
-    dr.refreshToken = newRefreshToken;
-    dr.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-    await dr.save();
-
-    return res
-      .status(200)
-      .cookie("refreshToken", newRefreshToken, {
-        httpOnly: true,
+      .cookie("role", "doctor", {
         secure: true,
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .json({
         success: true,
+        message: "Login successful",
         token,
+        dr: drWithoutPassword,
+        role: "doctor",
       });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

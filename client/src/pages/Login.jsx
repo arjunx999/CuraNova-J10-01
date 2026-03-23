@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import axios from "../api/axios.js";
+import { setAccessToken } from "../api/tokenStore.js";
+import { useUser } from "../../context/userContext.jsx";
+import toast from "react-hot-toast";
 
 const inputCls =
   "w-full px-3 py-2 text-sm rounded-lg bg-[#f8f8f8] border border-[#e6e6e6] focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition";
@@ -74,80 +79,146 @@ const ContentPanel = ({ isDoctor }) => (
 );
 
 /* ── Reusable form panel ── */
-const FormPanel = ({ isDoctor, onNavigate }) => (
-  <div className="flex-1 flex flex-col overflow-y-auto">
-    {/* Mobile logo */}
-    <div className="flex md:hidden items-center gap-2 px-6 pt-6 pb-2">
-      <span className="relative flex h-2 w-2">
-        <span
-          className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9b87f5] opacity-75"
-          style={{ animationDuration: "2s" }}
-        />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#9b87f5]" />
-      </span>
-      <img src={logo} alt="" className="h-5 object-contain" />
-    </div>
+const FormPanel = ({ isDoctor, onNavigate }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const { setUser } = useUser();
+  const Navigate = useNavigate();
 
-    <div className="flex-1 flex items-center justify-center px-6 sm:px-10 py-8">
-      <div className="w-full max-w-sm">
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-0.5">
-            {isDoctor ? "Doctor login" : "Welcome back"}
-          </h2>
-          <p className="text-xs text-gray-400">
-            {isDoctor
-              ? "Access your doctor dashboard"
-              : "Login to find your doctor"}
-          </p>
-        </div>
+  const [loginInfo, setLoginInfo] = useState({
+    email: "",
+    password: "",
+  });
 
-        <form className="space-y-3">
-          <div>
-            <label className="text-xs text-gray-500 block mb-1">Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              required
-              className={inputCls}
-            />
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setLoginInfo((prevInfo) => ({
+      ...prevInfo,
+      [name]: value,
+    }));
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (!isDoctor) {
+        const res = await axios.post("/auth/user/login", {
+          email: loginInfo.email,
+          password: loginInfo.password,
+        });
+        console.log(res);
+        setAccessToken(res.data.token);
+        const { _id, name, email, profilePicture } = res.data.user;
+        setUser({ _id, name, email, profilePicture });
+
+        toast.success(`Welcome back, ${name}!`, { duration: 1500 });
+        setTimeout(() => Navigate("/patient/home"), 1500);
+      } else {
+        alert("you aint no dr bitch");
+      }
+    } catch (error) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        alert(data.message);
+      } else if (error.request) {
+        alert("Server unreachable");
+      } else {
+        console.log(error.message);
+      }
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-y-auto">
+      {/* Mobile logo */}
+      <div className="flex md:hidden items-center gap-2 px-6 pt-6 pb-2">
+        <span className="relative flex h-2 w-2">
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9b87f5] opacity-75"
+            style={{ animationDuration: "2s" }}
+          />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#9b87f5]" />
+        </span>
+        <img src={logo} alt="" className="h-5 object-contain" />
+      </div>
+
+      <div className="flex-1 flex items-center justify-center px-6 sm:px-10 py-8">
+        <div className="w-full max-w-sm">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-0.5">
+              {isDoctor ? "Doctor login" : "Welcome back"}
+            </h2>
+            <p className="text-xs text-gray-400">
+              {isDoctor
+                ? "Access your doctor dashboard"
+                : "Login to find your doctor"}
+            </p>
           </div>
 
-          <div>
-            <label className="text-xs text-gray-500 block mb-1">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              required
-              className={inputCls}
-            />
-          </div>
+          <form className="space-y-3">
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">Email</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                required
+                className={inputCls}
+                name="email"
+                value={loginInfo.email}
+                onChange={handleInputChange}
+              />
+            </div>
 
-          <button
-            type="submit"
-            className="w-full bg-black text-white py-3 rounded-lg hover:bg-[#1a1a1a] transition font-medium text-sm cursor-pointer mt-1"
-          >
-            Login →
-          </button>
+            <div className="relative">
+              <label className="text-xs text-gray-500 block mb-1">
+                Password
+              </label>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                required
+                className="w-full px-3 py-2 pr-9 text-sm rounded-lg bg-[#f8f8f8] border border-[#e6e6e6] focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition"
+                name="password"
+                value={loginInfo.password}
+                onChange={handleInputChange}
+              />
+              <span
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition"
+                onClick={() => setShowPassword((prev) => !prev)}
+                title={showPassword ? "Hide Password" : "Show Password"}
+              >
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </span>
+            </div>
 
-          <p className="text-center text-sm text-gray-500 pb-2">
-            Don't have an account?{" "}
-            <span
-              onClick={() =>
-                onNavigate(
-                  isDoctor ? "/auth/doctor/signup" : "/auth/patient/signup",
-                )
-              }
-              className="text-purple-600 cursor-pointer hover:underline"
+            <button
+              type="submit"
+              className="w-full bg-black text-white py-3 rounded-lg hover:bg-[#1a1a1a] transition font-medium text-sm cursor-pointer mt-1"
+              onClick={handleLogin}
             >
-              Sign up
-            </span>
-          </p>
-        </form>
+              Login →
+            </button>
+
+            <p className="text-center text-sm text-gray-500 pb-2">
+              Don't have an account?{" "}
+              <span
+                onClick={() =>
+                  onNavigate(
+                    isDoctor ? "/auth/doctor/signup" : "/auth/patient/signup",
+                  )
+                }
+                className="text-purple-600 cursor-pointer hover:underline"
+              >
+                Sign up
+              </span>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
-);
-
+  );
+};
 /* ── Main Login component ── */
 const Login = () => {
   const Navigate = useNavigate();

@@ -25,7 +25,8 @@ const userSchema = mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      required: true,
+      // required: true,
+      default: "",
     },
     verificationToken: {
       type: String,

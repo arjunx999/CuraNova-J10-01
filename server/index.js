@@ -9,12 +9,24 @@ import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import "./utils/cronJobs.js";
 import "./workers/appointmentWorker.js";
+import "./workers/imageWorker.js";
+import "./workers/verificationWorker.js";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 app.use(express.json());
+app.use(cookieParser());
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://192.168.0.102:5173"],
+    credentials: true,
+  }),
+);
 
 connectDB();
 
