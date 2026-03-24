@@ -47,44 +47,16 @@ export const signup = async (req, res) => {
       fileBuffer: req.file.buffer.toString("base64"),
     });
 
-    await mailQueue.add("send-verification", { email, rawToken });
+    await mailQueue.add("send-verification", {
+      email,
+      rawToken,
+      role: "patient",
+    });
 
     return res.status(200).json({ message: "email sent for verif" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, error: error });
-  }
-};
-
-export const verifyEmail = async (req, res) => {
-  try {
-    const { token } = req.body;
-
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
-    const user = await User.findOne({
-      verificationToken: hashedToken,
-      tokenExpire: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired token" });
-    }
-
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.tokenExpire = undefined;
-    user.expiresAt = undefined;
-
-    await user.save();
-
-    return res
-      .status(200)
-      .json({ success: true, message: "Email verified successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
   }
 };
 

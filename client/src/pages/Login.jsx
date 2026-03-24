@@ -106,25 +106,37 @@ const FormPanel = ({ isDoctor, onNavigate }) => {
           email: loginInfo.email,
           password: loginInfo.password,
         });
-        console.log(res);
         setAccessToken(res.data.token);
         const { _id, name, email, profilePicture } = res.data.user;
         setUser({ _id, name, email, profilePicture });
-
         toast.success(`Welcome back, ${name}!`, { duration: 1500 });
         setTimeout(() => Navigate("/patient/home"), 1500);
       } else {
-        alert("you aint no dr bitch");
+        const res = await axios.post("/auth/doctor/login", {
+          email: loginInfo.email,
+          password: loginInfo.password,
+        });
+        setAccessToken(res.data.token);
+        const { _id, name, email, profilePicture } = res.data.dr;
+        setUser({ _id, name, email, profilePicture });
+        toast.success(`Welcome back, Dr. ${name}!`, { duration: 1500 });
+        setTimeout(() => Navigate("/doctor/home"), 1500);
       }
     } catch (error) {
-      if (error.response) {
-        const { status, data } = error.response;
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
 
-        alert(data.message);
-      } else if (error.request) {
-        alert("Server unreachable");
+      if (status === 404) {
+        toast.error("No account found with this email. Sign up instead.");
+      } else if (
+        status === 401 &&
+        message === "Please verify your email first"
+      ) {
+        toast.error("Please verify your email before logging in.");
+      } else if (status === 401) {
+        toast.error("Incorrect password. Try again.");
       } else {
-        console.log(error.message);
+        toast.error("Something went wrong. Please try again.");
       }
     }
   };

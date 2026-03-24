@@ -1,6 +1,6 @@
 import { sendMail } from "../utils/mailer.js";
 
-export const sendVerificationMail = async (email, rawToken) => {
+export const sendVerificationMail = async (email, rawToken, role) => {
   try {
     await sendMail({
       to: email,
@@ -12,7 +12,7 @@ export const sendVerificationMail = async (email, rawToken) => {
             <p style="color: #555; font-size: 15px;">
               Thank you for signing up. Please verify your email address to activate your CuraNova account.
             </p>
-            <a href="http://localhost:5173/auth/verify-email/${rawToken}"
+            <a href="http://localhost:5173/auth/verify-email/${rawToken}?role=${role}"
                style="display: inline-block; padding: 12px 20px; background-color: #9b87f5; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: 600;">
               Verify Email
             </a>
@@ -20,7 +20,7 @@ export const sendVerificationMail = async (email, rawToken) => {
               If the button above does not work, paste this link in your browser:
             </p>
             <p style="color: #9b87f5; font-size: 14px; word-break: break-all;">
-              http://localhost:5173/auth/verify-email/${rawToken}
+              http://localhost:5173/auth/verify-email/${rawToken}?role=${role}
             </p>
             <p style="color: #999; font-size: 13px; margin-top: 30px;">
               If you did not request this, you can safely ignore this email.

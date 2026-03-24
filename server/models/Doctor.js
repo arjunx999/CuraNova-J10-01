@@ -25,7 +25,8 @@ const doctorSchema = mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      required: true,
+      default: "",
+      // required: true,
     },
     degrees: [
       {

@@ -3,18 +3,24 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import logo from "../assets/logo.png";
 import { Check, X } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 const VerifyEmail = () => {
   const { rawToken } = useParams();
   const Navigate = useNavigate();
   const [status, setStatus] = useState("loading");
+  const [searchParams] = useSearchParams();
+  const role = searchParams.get("role");
 
   useEffect(() => {
     const sendToken = async () => {
       try {
-        await axios.post("http://localhost:7643/auth/user/verify-email", {
-          token: rawToken,
-        });
+        await axios.post(
+          `http://localhost:7643/auth/verify-email?role=${role}`,
+          {
+            token: rawToken,
+          },
+        );
         setStatus("success");
         setTimeout(() => Navigate("/auth/login"), 3000);
       } catch (error) {

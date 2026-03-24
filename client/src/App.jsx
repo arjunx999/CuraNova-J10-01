@@ -12,6 +12,7 @@ import { useUser } from "../context/userContext";
 import { useEffect } from "react";
 import axios from "./api/axios";
 import { setAccessToken } from "./api/tokenStore";
+import DoctorDashBoard from "./pages/doctor/DoctorDashBoard";
 
 const App = () => {
   const locomotiveScroll = new LocomotiveScroll();
@@ -43,6 +44,7 @@ const App = () => {
         <Route path="/auth/doctor/signup" element={<DoctorSignup />} />
         <Route path="/auth/patient/signup" element={<PatientSignup />} />
         <Route path="/patient/home" element={<PatientHome />} />
+        <Route path="/doctor/dashboard" element={<DoctorDashBoard />} />
         <Route path="/auth/verify-email/:rawToken" element={<VerifyEmail />} />
       </Routes>
     </>

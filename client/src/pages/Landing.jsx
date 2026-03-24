@@ -249,10 +249,16 @@ const Landing = () => {
 
         {/* desktop cta */}
         <div className="hidden md:flex h-full items-center justify-center gap-x-2 pt-2">
-          <button className="px-4 text-sm py-2 rounded-full transition-all duration-300 hover:text-black text-[#515151] cursor-pointer">
+          <button
+            onClick={() => Navigate("/auth/login")}
+            className="px-4 text-sm py-2 rounded-full transition-all duration-300 hover:text-black text-[#515151] cursor-pointer"
+          >
             Login
           </button>
-          <button className="px-4.5 py-2 text-sm text-white rounded-full transition-all duration-300 bg-black hover:bg-zinc-700 inline-flex items-center gap-2 cursor-pointer">
+          <button
+            onClick={() => Navigate("/auth/patient/signup")}
+            className="px-4.5 py-2 text-sm text-white rounded-full transition-all duration-300 bg-black hover:bg-zinc-700 inline-flex items-center gap-2 cursor-pointer"
+          >
             Find a doctor<span>→</span>
           </button>
         </div>
@@ -302,8 +308,16 @@ const Landing = () => {
             Use cases
           </button>
           <div className="flex gap-3 pt-2 border-t border-gray-100 mt-1">
-            <button className="text-sm text-[#515151]">Login</button>
-            <button className="px-4 py-2 text-sm text-white bg-black rounded-full inline-flex items-center gap-2">
+            <button
+              onClick={() => Navigate("/auth/login")}
+              className="text-sm text-[#515151]"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => Navigate("/auth/patient/signup")}
+              className="px-4 py-2 text-sm text-white bg-black rounded-full inline-flex items-center gap-2"
+            >
               Find a doctor<span>→</span>
             </button>
           </div>
@@ -893,12 +907,14 @@ const Landing = () => {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => Navigate("/auth/patient/signup")}
               style={{ cursor: "pointer" }}
               className="px-6 py-3 text-sm font-medium text-white bg-black rounded-full hover:bg-zinc-800 transition-all duration-200 inline-flex items-center gap-2 z-20"
             >
               Find a doctor <span>→</span>
             </button>
             <button
+              onClick={() => Navigate("/auth/doctor/signup")}
               style={{ cursor: "pointer" }}
               className="px-6 py-3 text-sm font-medium text-gray-700 bg-white rounded-full border border-gray-200 hover:border-[#9b87f5] hover:text-[#7c5ce8] transition-all duration-200 z-20"
             >

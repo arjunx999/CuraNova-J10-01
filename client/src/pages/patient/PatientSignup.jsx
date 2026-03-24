@@ -70,14 +70,19 @@ const PatientSignup = () => {
       // alert("Check your email for verification!");
       setEmailSent(true);
     } catch (error) {
-      if (error.response) {
-        const { status, data } = error.response;
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
 
-        alert(data.message);
+      if (status === 400) {
+        toast.error(
+          "An account with this email already exists. Login instead.",
+        );
+      } else if (status === 500) {
+        toast.error("Server error. Please try again later.");
       } else if (error.request) {
-        alert("Server unreachable");
+        toast.error("Server unreachable. Check your connection.");
       } else {
-        console.log(error.message);
+        toast.error(message || "Something went wrong. Please try again.");
       }
     }
   };
