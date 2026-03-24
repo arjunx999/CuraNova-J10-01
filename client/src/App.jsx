@@ -9,42 +9,102 @@ import VerifyEmail from "./pages/VerifyEmail";
 import { Toaster } from "react-hot-toast";
 import PatientHome from "../src/pages/patient/PatientHome";
 import { useUser } from "../context/userContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "./api/axios";
 import { setAccessToken } from "./api/tokenStore";
 import DoctorDashBoard from "./pages/doctor/DoctorDashBoard";
+import { Navigate } from "react-router-dom";
+const PublicRoute = ({ children }) => {
+  const { user } = useUser();
+  if (user) {
+    return (
+      <Navigate
+        to={user.role === "doctor" ? "/doctor/dashboard" : "/patient/home"}
+        replace
+      />
+    );
+  }
+  return children;
+};
+
+const PrivateRoute = ({ children }) => {
+  const { user } = useUser();
+  if (!user) return <Navigate to="/auth/login" replace />;
+  return children;
+};
 
 const App = () => {
   const locomotiveScroll = new LocomotiveScroll();
 
-  const { setUser } = useUser();
+  const [loading, setLoading] = useState(true);
+  const { user, setUser } = useUser();
 
   useEffect(() => {
     const restoreSession = async () => {
       try {
         const res = await axios.post("/auth/refresh-token");
         setAccessToken(res.data.token);
-        const { _id, name, email, profilePicture } = res.data.user;
-        const { role } = res.data;
-        setUser({ _id, name, email, profilePicture, role });
+        const userData = res.data.user || res.data.dr;
+        const { _id, name, email, profilePicture } = userData;
+        setUser({ _id, name, email, profilePicture, role: res.data.role });
       } catch {
-        // no valid refresh token
+        // no session
+      } finally {
+        setLoading(false);
       }
     };
-
     restoreSession();
   }, []);
+
+  if (loading) return null;
 
   return (
     <>
       <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/doctor/signup" element={<DoctorSignup />} />
-        <Route path="/auth/patient/signup" element={<PatientSignup />} />
-        <Route path="/patient/home" element={<PatientHome />} />
-        <Route path="/doctor/dashboard" element={<DoctorDashBoard />} />
+        <Route
+          path="/auth/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/auth/doctor/signup"
+          element={
+            <PublicRoute>
+              <DoctorSignup />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/auth/patient/signup"
+          element={
+            <PublicRoute>
+              <PatientSignup />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/patient/home"
+          element={
+            <PrivateRoute>
+              <PatientHome />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/doctor/dashboard"
+          element={
+            <PrivateRoute>
+              <DoctorDashBoard />
+            </PrivateRoute>
+          }
+        />
+
         <Route path="/auth/verify-email/:rawToken" element={<VerifyEmail />} />
       </Routes>
     </>

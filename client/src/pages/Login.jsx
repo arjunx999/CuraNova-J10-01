@@ -108,7 +108,7 @@ const FormPanel = ({ isDoctor, onNavigate }) => {
         });
         setAccessToken(res.data.token);
         const { _id, name, email, profilePicture } = res.data.user;
-        setUser({ _id, name, email, profilePicture });
+        setUser({ _id, name, email, profilePicture, role: "patient" });
         toast.success(`Welcome back, ${name}!`, { duration: 1500 });
         setTimeout(() => Navigate("/patient/home"), 1500);
       } else {
@@ -118,9 +118,9 @@ const FormPanel = ({ isDoctor, onNavigate }) => {
         });
         setAccessToken(res.data.token);
         const { _id, name, email, profilePicture } = res.data.dr;
-        setUser({ _id, name, email, profilePicture });
+        setUser({ _id, name, email, profilePicture, role: "doctor" });
         toast.success(`Welcome back, Dr. ${name}!`, { duration: 1500 });
-        setTimeout(() => Navigate("/doctor/home"), 1500);
+        setTimeout(() => Navigate("/doctor/dashboard"), 1500);
       }
     } catch (error) {
       const status = error.response?.status;

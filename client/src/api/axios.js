@@ -3,10 +3,9 @@ import { getAccessToken, clearAccessToken, setAccessToken } from "./tokenStore";
 
 const instance = axios.create({
   baseURL: "http://localhost:7643",
-  withCredentials: true, // sends cookies automatically
+  withCredentials: true,
 });
 
-// attach access token to every request
 instance.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) {
@@ -20,11 +19,8 @@ let failedQueue = [];
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach((p) => {
-    if (error) {
-      p.reject(error);
-    } else {
-      p.resolve(token);
-    }
+    if (error) p.reject(error);
+    else p.resolve(token);
   });
   failedQueue = [];
 };
@@ -33,7 +29,12 @@ instance.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
+
     if (error.response?.status === 401 && !original._retry) {
+      if (original.url === "/auth/refresh-token") {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -64,6 +65,7 @@ instance.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   },
 );

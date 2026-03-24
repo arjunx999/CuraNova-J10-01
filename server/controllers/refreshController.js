@@ -16,6 +16,7 @@ export const refresh = async (req, res) => {
 
     let token;
     let newRefreshToken;
+    let userData;
 
     if (role === "doctor") {
       const dr = await Doctor.findOne({ refreshToken });
@@ -38,8 +39,10 @@ export const refresh = async (req, res) => {
       newRefreshToken = crypto.randomBytes(40).toString("hex");
       dr.refreshToken = newRefreshToken;
       dr.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
       await dr.save();
+
+      const { password: _p, ...drData } = dr.toObject();
+      userData = drData;
     } else {
       const user = await User.findOne({ refreshToken });
       if (!user) {
@@ -57,16 +60,16 @@ export const refresh = async (req, res) => {
       token = jwt.sign(
         { id: user._id, role: "patient" },
         process.env.JWT_SECRET,
-        {
-          expiresIn: "15m",
-        },
+        { expiresIn: "15m" },
       );
 
       newRefreshToken = crypto.randomBytes(40).toString("hex");
       user.refreshToken = newRefreshToken;
       user.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
       await user.save();
+
+      const { password: _p, ...patientData } = user.toObject();
+      userData = patientData;
     }
 
     return res
@@ -86,6 +89,7 @@ export const refresh = async (req, res) => {
         success: true,
         token,
         role,
+        user: userData,
       });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
