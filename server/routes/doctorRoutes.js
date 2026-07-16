@@ -5,6 +5,7 @@ import {
   getDoctorByDepartment,
   getDoctorDashboard,
   getDoctorInfo,
+  getDoctors,
 } from "../controllers/doctorController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -22,6 +23,8 @@ router.get(
 
 router.get("/dashboard", verifyToken, getDoctorDashboard);
 
-router.get("/get-doctor-info/:dr_id", verifyToken, getDoctorInfo);
+router.get("/get-doctor-info/:id", verifyToken, getDoctorInfo);
+
+router.get("/get-doctors", verifyToken, getDoctors);
 
 export default router;

@@ -136,6 +136,7 @@ const FormPanel = ({ isDoctor, onNavigate }) => {
       } else if (status === 401) {
         toast.error("Incorrect password. Try again.");
       } else {
+        console.log(error);
         toast.error("Something went wrong. Please try again.");
       }
     }

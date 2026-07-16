@@ -215,22 +215,31 @@ export const getDoctorDashboard = async (req, res) => {
 
 export const getDoctorInfo = async (req, res) => {
   try {
-    const { dr_id } = req.params;
-    const doctor = await Doctor.findById(
-      dr_id,
-      "-password -verificationToken -tokenExpire -refreshToken -refreshTokenExpire -expiresAt",
-    ).lean();
-    if (!doctor) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Doctor not found" });
+    const { id } = req.params;
+    const cache_key = id;
+    const cached = await redisClient.get(cache_key);
+    let doctor;
+    if (cached) {
+      doctor = JSON.parse(cached);
+    } else {
+      doctor = await Doctor.findById(
+        id,
+        "-password -verificationToken -tokenExpire -refreshToken -refreshTokenExpire -expiresAt",
+      ).lean();
+
+      if (!doctor) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Doctor not found" });
+      }
+      await redisClient.setEx(cache_key, 600, JSON.stringify(doctor));
     }
 
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
     const slots = await Slot.find({
-      doctor: dr_id,
+      doctor: id,
       date: { $gte: startOfDay },
     })
       .sort({ date: 1, start_time: 1 })
@@ -241,6 +250,66 @@ export const getDoctorInfo = async (req, res) => {
       slots,
       doctor,
     });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const fetchWithFilters = async (
+  doctors,
+  { department, sort, available_today },
+  res,
+) => {
+  if (department && department !== "All") {
+    doctors = doctors.filter((dr) => dr.department === department);
+  }
+
+  if (sort === "rating") {
+    doctors.sort((a, b) => b.rating - a.rating);
+  } else if (sort === "fee_asc") {
+    doctors.sort((a, b) => a.consultation_fee - b.consultation_fee);
+  } else if (sort === "fee_desc") {
+    doctors.sort((a, b) => b.consultation_fee - a.consultation_fee);
+  }
+
+  if (available_today === "true") {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    const available_doctors = await Slot.distinct("doctor", {
+      date: { $gte: todayStart, $lte: todayEnd },
+      isAvailable: true,
+    });
+    const idSet = new Set(available_doctors.map((id) => id.toString()));
+    doctors = doctors.filter((dr) => idSet.has(dr._id.toString()));
+  }
+
+  return res.status(200).json({ success: true, doctors });
+};
+
+export const getDoctors = async (req, res) => {
+  try {
+    const { department, sort, available_today } = req.query;
+    const cache_key = "all_doctors";
+    const cached = await redisClient.get(cache_key);
+
+    if (cached) {
+      return fetchWithFilters(
+        JSON.parse(cached),
+        { department, sort, available_today },
+        res,
+      );
+    }
+
+    const data = await Doctor.find(
+      {},
+      "-password -verificationToken -tokenExpire -refreshToken -refreshTokenExpire -expiresAt",
+    ).lean();
+
+    await redisClient.setEx(cache_key, 600, JSON.stringify(data));
+
+    return fetchWithFilters(data, { department, sort, available_today }, res);
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }

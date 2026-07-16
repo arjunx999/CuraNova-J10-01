@@ -14,6 +14,8 @@ import axios from "./api/axios";
 import { setAccessToken } from "./api/tokenStore";
 import DoctorDashBoard from "./pages/doctor/DoctorDashBoard";
 import { Navigate } from "react-router-dom";
+import DoctorProfile from "./pages/doctor/DoctorProfile";
+
 const PublicRoute = ({ children }) => {
   const { user } = useUser();
   if (user) {
@@ -101,6 +103,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <DoctorDashBoard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/patient/doctor/:id"
+          element={
+            <PrivateRoute>
+              <DoctorProfile />
             </PrivateRoute>
           }
         />
