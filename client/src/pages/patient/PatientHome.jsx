@@ -1,8 +1,20 @@
-import React, { useState, useEffect } from "react";
-import { LayoutDashboard, Search, Star, BadgeCheck } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  LayoutDashboard,
+  Search,
+  Star,
+  BadgeCheck,
+  LogOut,
+  ChevronDown,
+  UserCircle2,
+} from "lucide-react";
 import logo from "../../assets/logo.png";
 import axios from "../../api/axios";
 import { useNavigate } from "react-router-dom";
+import LogoutButton from "../../components/LogoutButton.jsx";
+import { useUser } from "../../../context/userContext.jsx";
+import { clearAccessToken } from "../../api/tokenStore.js";
+import toast from "react-hot-toast";
 
 const departments = [
   "All",
@@ -140,6 +152,21 @@ const PatientHome = () => {
   const [availableToday, setAvailableToday] = useState(false);
   const [search, setSearch] = useState("");
   const [doctors, setDoctors] = useState([]);
+  const Navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const { setUser } = useUser();
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -167,6 +194,18 @@ const PatientHome = () => {
         doc.department.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const handleLogout = async () => {
+    try {
+      await axios.post("/auth/logout");
+    } catch {
+    } finally {
+      clearAccessToken();
+      setUser(null);
+      toast.success("Logged out successfully.");
+      Navigate("/");
+    }
+  };
+
   return (
     <div className="w-screen min-h-screen overflow-x-hidden bg-[#f5f4f0] relative flex flex-col">
       <div className="w-full h-full absolute top-0 left-0 blob1 z-0 opacity-50"></div>
@@ -181,10 +220,49 @@ const PatientHome = () => {
             className="w-full h-full object-contain scale-95"
           />
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#ede9fe] text-[#7c5ce8] text-xs sm:text-sm font-medium rounded-full border border-[#9b87f5] cursor-pointer">
-          <LayoutDashboard size={14} />
-          <span>Dashboard</span>
-        </button>
+
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setOpen(!open)}
+            className="flex items-center gap-2 px-3 py-2 rounded-full border border-[#9b87f5] bg-[#ede9fe] text-[#7c5ce8] hover:bg-[#e7e1fd] transition-all cursor-pointer"
+          >
+            <UserCircle2 size={18} />
+            <span className="text-sm font-medium hidden sm:block">Arjun</span>
+            <ChevronDown
+              size={16}
+              className={`transition-transform duration-200 ${
+                open ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          <div
+            className={`absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden origin-top-right transition-all duration-200 ${
+              open
+                ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+            }`}
+          >
+            {/* Dashboard Link */}
+            <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f6f3ff] transition-colors cursor-pointer">
+              <LayoutDashboard size={18} className="text-[#7c5ce8]" />
+              <span className="text-sm font-medium text-gray-700">
+                Dashboard
+              </span>
+            </button>
+
+            <div className="h-px bg-gray-100" />
+
+            {/* Logout */}
+            <button
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors cursor-pointer"
+              onClick={handleLogout}
+            >
+              <LogOut size={18} className="text-red-500" />
+              <span className="text-sm font-medium text-red-500">Logout</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* hero */}
