@@ -1,13 +1,7 @@
 import React from "react";
-import LogoutButton from "../../components/LogoutButton";
 
 const DoctorDashBoard = () => {
-  return (
-    <div>
-      DoctorDashBoard
-      <LogoutButton />
-    </div>
-  );
+  return <div>DoctorDashBoard</div>;
 };
 
 export default DoctorDashBoard;
