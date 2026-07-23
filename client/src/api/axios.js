@@ -30,7 +30,12 @@ instance.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    if (error.response?.status === 401 && !original._retry) {
+    if (
+      error.response?.status === 401 &&
+      !original._retry &&
+      !original.url.includes("/auth/user/login") &&
+      !original.url.includes("/auth/doctor/login")
+    ) {
       if (original.url === "/auth/refresh-token") {
         return Promise.reject(error);
       }

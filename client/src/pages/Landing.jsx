@@ -929,6 +929,7 @@ const Landing = () => {
         <h1 className="text-sm text-gray-400">CuraNova@2025</h1>
         <div className="flex items-center gap-4">
           <a
+            target="blank"
             href="https://github.com/arjunx999/"
             className="text-gray-400 hover:text-gray-700 cursor-pointer transition-colors duration-200 z-20"
           >
@@ -937,6 +938,7 @@ const Landing = () => {
             </svg>
           </a>
           <a
+            target="blank"
             href="https://www.linkedin.com/in/arjun-verma-5b4326292/"
             className="text-gray-400 hover:text-[#0077b5] cursor-pointer transition-colors duration-200 z-20"
           >

@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  font-size: 125%;
+}
+
 .gradient1 {
   background:
     radial-gradient(ellipse at top left, #ede9fe 0%, transparent 50%),

@@ -308,21 +308,27 @@ const PatientHome = () => {
         </div>
       </div>
 
-      {/* footer */}
-      <div className="w-[95%] h-[0.5px] bg-[#6d4fc9] mt-10 md:mt-15 mx-auto shadow-[0_10px_60px_rgba(0,0,0,0.07)]"></div>
+      {/* Footer */}
 
-      <div className="w-full px-4 sm:px-6 md:px-10 my-6 md:my-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* Left Text */}
-        <h1 className="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
-          CuraNova@2025
-        </h1>
+      <div className="relative z-10 w-[95%] h-[0.5px] bg-[#6d4fc9] mt-10 md:mt-15 mx-auto shadow-[0_10px_60px_rgba(0,0,0,0.07)]" />
 
-        {/* Icons */}
+      <footer className="relative z-10 w-full px-4 sm:px-6 md:px-10 my-6 md:my-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Left */}
+
+        <p className="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
+          CuraNova © 2025
+        </p>
+
+        {/* Social Icons */}
+
         <div className="flex items-center gap-4">
-          {/* GitHub */}
+          {/* Github */}
+
           <a
             href="https://github.com/arjunx999/"
-            className="text-gray-400 hover:text-gray-700 transition-colors duration-200"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-gray-700 transition-colors duration-200 relative z-50"
           >
             <svg
               className="w-5 h-5 sm:w-6 sm:h-6"
@@ -334,9 +340,12 @@ const PatientHome = () => {
           </a>
 
           {/* LinkedIn */}
+
           <a
             href="https://www.linkedin.com/in/arjun-verma-5b4326292/"
-            className="text-gray-400 hover:text-[#0077b5] transition-colors duration-200"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-[#0077b5] transition-colors duration-200 relative z-50"
           >
             <svg
               className="w-5 h-5 sm:w-6 sm:h-6"
@@ -347,7 +356,7 @@ const PatientHome = () => {
             </svg>
           </a>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };

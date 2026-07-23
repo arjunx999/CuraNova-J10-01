@@ -31,7 +31,7 @@ const PublicRoute = ({ children }) => {
 
 const PrivateRoute = ({ children }) => {
   const { user } = useUser();
-  if (!user) return <Navigate to="/auth/login" replace />;
+  if (!user) return <Navigate to="/" replace />;
   return children;
 };
 
@@ -64,7 +64,14 @@ const App = () => {
     <>
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Landing />
+            </PublicRoute>
+          }
+        />
         <Route
           path="/auth/login"
           element={

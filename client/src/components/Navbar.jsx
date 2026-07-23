@@ -4,6 +4,7 @@ import {
   LogOut,
   ChevronDown,
   UserCircle2,
+  Stethoscope,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -20,7 +21,7 @@ const Navbar = () => {
 
   const Navigate = useNavigate();
 
-  const { setUser } = useUser();
+  const { user, setUser } = useUser();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -52,10 +53,11 @@ const Navbar = () => {
   return (
     <div
       className="
-      w-full h-[9vh]
-      flex items-center justify-between
-      px-4 sm:px-[4vw] md:px-[3vw]
-      z-50
+        relative
+        z-50
+        w-full h-[9vh]
+        flex items-center justify-between
+        px-4 sm:px-[4vw] md:px-[3vw]
       "
     >
       {/* Logo */}
@@ -96,7 +98,11 @@ const Navbar = () => {
           cursor-pointer
           "
         >
-          <UserCircle2 size={18} />
+          {user.role === "doctor" ? (
+            <Stethoscope size={18} />
+          ) : (
+            <UserCircle2 size={18} />
+          )}
 
           <span
             className="
@@ -105,7 +111,7 @@ const Navbar = () => {
             hidden sm:block
             "
           >
-            Arjun
+            {user.name}
           </span>
 
           <ChevronDown
@@ -141,8 +147,9 @@ const Navbar = () => {
 
           `}
         >
-          <button
-            className="
+          {user.role === "patient" && (
+            <button
+              className="
             w-full
             flex items-center gap-3
             px-4 py-3
@@ -150,19 +157,20 @@ const Navbar = () => {
             transition-colors
             cursor-pointer
             "
-          >
-            <LayoutDashboard size={18} className="text-[#7c5ce8]" />
+            >
+              <LayoutDashboard size={18} className="text-[#7c5ce8]" />
 
-            <span
-              className="
+              <span
+                className="
               text-sm
               font-medium
               text-gray-700
               "
-            >
-              Dashboard
-            </span>
-          </button>
+              >
+                Dashboard
+              </span>
+            </button>
+          )}
 
           <div
             className="

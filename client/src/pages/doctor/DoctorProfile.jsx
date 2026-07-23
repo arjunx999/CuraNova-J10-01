@@ -148,7 +148,7 @@ const DoctorProfile = () => {
 
       {/* Page Content */}
       <main className="relative z-10 flex-1 w-full px-6 lg:px-12 py-8">
-        <div className="max-w-[1400px] mx-auto">
+        <div className="max-w-[2000px] mx-auto">
           {/* Back */}
           <button
             onClick={() => navigate(-1)}
