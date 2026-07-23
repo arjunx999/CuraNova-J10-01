@@ -6,8 +6,7 @@ import redisClient from "../config/redisClient.js";
 
 export const createSlot = async (req, res) => {
   try {
-    const { date, start_time, end_time, slot_duration, break_duration } =
-      req.body;
+    const { date, start_time, end_time } = req.body;
     const dr_id = req.user.id;
 
     const doctor = await Doctor.findById(dr_id);
@@ -17,6 +16,9 @@ export const createSlot = async (req, res) => {
         .json({ success: false, message: "No user found with current id" });
     }
 
+    const slot_duration = Number(req.body.slot_duration);
+    const break_duration = Number(req.body.break_duration);
+
     const startMin = toMinutes(start_time);
     const endMin = toMinutes(end_time);
 
@@ -24,6 +26,20 @@ export const createSlot = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid time for slot creation",
+      });
+    }
+
+    const existingSlots = await Slot.findOne({
+      doctor: dr_id,
+      date: new Date(date),
+      start_time: { $lt: end_time },
+      end_time: { $gt: start_time },
+    });
+
+    if (existingSlots) {
+      return res.status(400).json({
+        success: false,
+        message: "Slots already exist for this date and time",
       });
     }
 
@@ -53,6 +69,7 @@ export const createSlot = async (req, res) => {
       totalSlots: slots.length,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -142,7 +159,7 @@ export const getDoctorDashboard = async (req, res) => {
     const dr_id = req.user.id;
 
     const doctor = await Doctor.findById(dr_id)
-      .select("rating rating_count consultation_fee")
+      // .select("rating rating_count consultation_fee")
       .lean();
     if (!doctor) {
       return res
@@ -199,7 +216,7 @@ export const getDoctorDashboard = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: {
+      appointment_data: {
         todayAppointments,
         upcomingAppointments,
         completedAppointments,
@@ -216,22 +233,39 @@ export const getDoctorDashboard = async (req, res) => {
 export const getDoctorInfo = async (req, res) => {
   try {
     const { id } = req.params;
-    const cache_key = id;
-    const cached = await redisClient.get(cache_key);
+    const cache_key = `doctor:${id}`;
+
     let doctor;
+
+    const cached = await redisClient.get(cache_key);
+
     if (cached) {
       doctor = JSON.parse(cached);
     } else {
-      doctor = await Doctor.findById(
-        id,
-        "-password -verificationToken -tokenExpire -refreshToken -refreshTokenExpire -expiresAt",
-      ).lean();
+      const [doctorData, patientsCount] = await Promise.all([
+        Doctor.findById(
+          id,
+          "-password -verificationToken -tokenExpire -refreshToken -refreshTokenExpire -expiresAt",
+        ).lean(),
 
-      if (!doctor) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Doctor not found" });
+        Appointment.countDocuments({
+          doctor: id,
+          status: "completed",
+        }),
+      ]);
+
+      if (!doctorData) {
+        return res.status(404).json({
+          success: false,
+          message: "Doctor not found",
+        });
       }
+
+      doctor = {
+        ...doctorData,
+        patients_count: patientsCount,
+      };
+
       await redisClient.setEx(cache_key, 600, JSON.stringify(doctor));
     }
 
@@ -247,11 +281,14 @@ export const getDoctorInfo = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      slots,
       doctor,
+      slots,
     });
   } catch (error) {
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+    });
   }
 };
 

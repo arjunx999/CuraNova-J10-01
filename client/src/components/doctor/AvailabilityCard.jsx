@@ -1,6 +1,49 @@
 import { CalendarDays, Clock } from "lucide-react";
+import { useState } from "react";
+import axios from "../../api/axios";
+import toast from "react-hot-toast";
 
 const AvailabilityCard = () => {
+  const [formData, setFormData] = useState({
+    date: "",
+    start_time: "",
+    end_time: "",
+    slot_duration: 0,
+    break_duration: 0,
+  });
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await axios.post("/doctor/add-slot", formData, {
+        withCredentials: true,
+      });
+
+      console.log(res.data);
+      toast.success(res.data.message);
+
+      setFormData({
+        date: "",
+        start_time: "",
+        end_time: "",
+        slot_duration: 0,
+        break_duration: 0,
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    }
+  };
+
   return (
     <div className="bg-white rounded-3xl border border-gray-100 p-5">
       <h2 className="text-sm font-semibold text-gray-800 mb-5">
@@ -8,27 +51,13 @@ const AvailabilityCard = () => {
       </h2>
 
       {/* Date */}
-
-      <div className="mb-3">
-        <input
-          type="date"
-          className="
-            w-full h-10 rounded-xl
-            border border-gray-200
-            px-3
-            text-sm text-gray-500
-            outline-none
-            focus:border-[#9b87f5]
-          "
-        />
-      </div>
-
-      {/* Time */}
-
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <input
-          type="time"
-          className="
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className="text-xs text-gray-400 block mb-1">Date</label>
+          <input
+            type="date"
+            min={today}
+            className="
             w-full h-10 rounded-xl
             border border-gray-200
             px-3
@@ -36,11 +65,23 @@ const AvailabilityCard = () => {
             outline-none
             focus:border-[#9b87f5]
           "
-        />
+            name="date"
+            value={formData.date}
+            required
+            onChange={handleChange}
+          />
+        </div>
 
-        <input
-          type="time"
-          className="
+        {/* Time */}
+
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">
+              Start Time
+            </label>
+            <input
+              type="time"
+              className="
             w-full h-10 rounded-xl
             border border-gray-200
             px-3
@@ -48,20 +89,42 @@ const AvailabilityCard = () => {
             outline-none
             focus:border-[#9b87f5]
           "
-        />
-      </div>
+              name="start_time"
+              value={formData.start_time}
+              required
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">End Time</label>
+            <input
+              type="time"
+              className="
+            w-full h-10 rounded-xl
+            border border-gray-200
+            px-3
+            text-sm
+            outline-none
+            focus:border-[#9b87f5]
+          "
+              name="end_time"
+              value={formData.end_time}
+              required
+              onChange={handleChange}
+            />
+          </div>
+        </div>
 
-      {/* Slot + Break */}
+        {/* Slot + Break */}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs text-gray-400 block mb-1">
-            Slot length(min)
-          </label>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">
+              Slot length(min)
+            </label>
 
-          <input
-            defaultValue="15"
-            className="
+            <input
+              className="
               w-full h-10 rounded-xl
               border border-gray-200
               px-3
@@ -69,15 +132,21 @@ const AvailabilityCard = () => {
               outline-none
               focus:border-[#9b87f5]
             "
-          />
-        </div>
+              name="slot_duration"
+              value={formData.slot_duration}
+              required
+              onChange={handleChange}
+              type="number"
+            />
+          </div>
 
-        <div>
-          <label className="text-xs text-gray-400 block mb-1">Break(min)</label>
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">
+              Break(min)
+            </label>
 
-          <input
-            defaultValue="5"
-            className="
+            <input
+              className="
               w-full h-10 rounded-xl
               border border-gray-200
               px-3
@@ -85,31 +154,31 @@ const AvailabilityCard = () => {
               outline-none
               focus:border-[#9b87f5]
             "
-          />
+              type="number"
+              name="break_duration"
+              value={formData.break_duration}
+              required
+              onChange={handleChange}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Create */}
+        {/* Create */}
 
-      <button
-        className="
+        <button
+          className="
           w-full h-10 rounded-xl
           bg-[#8b00ff]
           hover:bg-[#7c5ce8]
           text-white
           text-sm font-medium
           transition
-          mt-4
+          mt-4 cursor-pointer
         "
-      >
-        Create slots
-      </button>
-
-      {/* Bottom */}
-
-      <div className="border-t border-gray-100 mt-4 pt-4">
-        <p className="text-xs text-gray-400">No upcoming slots yet.</p>
-      </div>
+        >
+          Create slots
+        </button>
+      </form>
     </div>
   );
 };

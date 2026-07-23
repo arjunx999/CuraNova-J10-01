@@ -7,12 +7,12 @@ import {
   Star,
   BadgeCheck,
 } from "lucide-react";
-
 import Navbar from "../../components/Navbar";
 import axios from "../../api/axios";
-
 import EditProfileModal from "../../components/doctor/EditProfileModal";
 import AvailabilityCard from "../../components/doctor/AvailabilityCard";
+import { useUser } from "../../../context/userContext";
+import DoctorAvailabilityCalendar from "../../components/doctor/DoctorAvailabilityCalendar";
 
 const StatCard = ({ icon: Icon, value, label }) => {
   return (
@@ -30,11 +30,22 @@ const StatCard = ({ icon: Icon, value, label }) => {
   );
 };
 
-const AppointmentCard = ({ patient, time, type }) => {
+const AppointmentCard = ({ appointment }) => {
+  const patientName =
+    appointment?.patientName ||
+    appointment?.patient?.name ||
+    appointment?.bookedBy?.name ||
+    "Patient";
+
+  const time = appointment?.start_time || appointment?.time || "--:--";
+
+  const type =
+    appointment?.type || appointment?.consultationType || "Consultation";
+
   return (
     <div className="bg-[#faf9ff] border border-[#ede9fe] rounded-xl p-4 flex items-center justify-between">
       <div>
-        <h3 className="text-sm font-medium text-gray-900">{patient}</h3>
+        <h3 className="text-sm font-medium text-gray-900">{patientName}</h3>
 
         <p className="text-xs text-gray-400 mt-1">
           {time} • {type}
@@ -64,26 +75,50 @@ const DoctorDashboard = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
 
   const [activeTab, setActiveTab] = useState("Today");
+  const { user } = useUser();
+
+  const [slots, setSlots] = useState([]);
+  const [todayAppointments, setTodayAppointments] = useState([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [completedAppointments, setCompletedAppointments] = useState([]);
+  const [totalEarnings, setTotalEarnings] = useState(0);
 
   useEffect(() => {
+    if (!user?._id) return;
+
     const fetchDoctor = async () => {
       try {
-        const res = await axios.get("/doctor/profile");
+        const res = await axios.get(`/doctor/dashboard`);
+        const { doctor, appointment_data, totalEarnings } = res.data;
 
-        setDoctor(res.data.doctor);
+        setDoctor(doctor);
+        setSlots(appointment_data?.slots || []);
+        setTodayAppointments(appointment_data?.todayAppointments || []);
+        setUpcomingAppointments(appointment_data?.upcomingAppointments || []);
+        setCompletedAppointments(appointment_data?.completedAppointments || []);
+        setTotalEarnings(totalEarnings || 0);
       } catch (error) {
         console.log(error);
       }
     };
 
     fetchDoctor();
-  }, []);
+  }, [user]);
 
   const initials = doctor?.name
     ?.replace("Dr. ", "")
     ?.split(" ")
     ?.map((n) => n[0])
     ?.join("");
+
+  const tabData = {
+    Today: todayAppointments,
+    Upcoming: upcomingAppointments,
+    Completed: completedAppointments,
+  };
+
+  const activeAppointments = tabData[activeTab] || [];
+  const tabs = ["Today", "Upcoming", "Completed", "Calendar"];
 
   return (
     <div className="min-h-screen bg-[#f5f4f0] relative overflow-hidden">
@@ -100,14 +135,18 @@ const DoctorDashboard = () => {
 
         <section className="bg-white rounded-3xl border border-gray-100 p-6 flex items-center justify-between mb-6">
           <div className="flex items-center gap-5">
-            <div className="w-20 h-20 rounded-2xl bg-[#ede9fe] text-[#7c5ce8] flex items-center justify-center font-semibold text-2xl">
-              {initials || "DR"}
+            <div className="w-20 h-20 rounded-2xl bg-[#ede9fe] text-[#7c5ce8] flex items-center justify-center font-semibold text-2xl overflow-hidden">
+              {doctor?.profilePicture ? (
+                <img src={doctor.profilePicture} alt="" />
+              ) : (
+                <span>{initials}</span>
+              )}
             </div>
 
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-semibold text-gray-900">
-                  {doctor?.name || "Doctor"}
+                  Dr. {doctor?.name}
                 </h1>
 
                 <BadgeCheck
@@ -146,7 +185,7 @@ const DoctorDashboard = () => {
 
             <button
               onClick={() => setShowEditProfile(true)}
-              className="px-4 py-2 rounded-xl border border-[#9b87f5] text-[#7c5ce8] text-sm hover:bg-[#ede9fe] transition"
+              className="px-4 py-2 rounded-xl border border-[#9b87f5] text-[#7c5ce8] text-sm hover:bg-[#ede9fe] transition cursor-pointer"
             >
               Edit profile
             </button>
@@ -156,31 +195,43 @@ const DoctorDashboard = () => {
         {/* Stats */}
 
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard icon={Wallet} value="₹0" label="Total earnings" />
+          <StatCard
+            icon={Wallet}
+            value={`₹${totalEarnings}`}
+            label="Total earnings"
+          />
 
-          <StatCard icon={Users} value="0" label="Today's appointments" />
+          <StatCard
+            icon={Users}
+            value={todayAppointments.length}
+            label="Today's appointments"
+          />
 
           <StatCard
             icon={CalendarDays}
-            value="0"
+            value={upcomingAppointments.length}
             label="Upcoming appointments"
           />
 
-          <StatCard icon={CheckCircle} value="0" label="Completed" />
+          <StatCard
+            icon={CheckCircle}
+            value={completedAppointments.length}
+            label="Completed"
+          />
         </section>
 
         {/* Main Grid */}
 
         <section className="grid grid-cols-12 gap-6">
-          {/* Appointments */}
+          {/* Appointments / Calendar */}
 
           <div className="col-span-12 lg:col-span-8">
             <div className="flex gap-2 mb-3">
-              {["Today", "Upcoming", "Completed"].map((tab) => (
+              {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-full text-sm transition ${
+                  className={`px-4 py-2 rounded-full cursor-pointer text-sm transition ${
                     activeTab === tab
                       ? "bg-[#7c5ce8] text-white"
                       : "bg-white text-gray-500"
@@ -191,27 +242,31 @@ const DoctorDashboard = () => {
               ))}
             </div>
 
-            <div className="bg-white rounded-3xl border border-gray-100 p-6 min-h-[260px]">
-              <div className="space-y-3">
-                <AppointmentCard
-                  patient="Rahul Sharma"
-                  time="10:00 AM"
-                  type="Video consultation"
-                />
-
-                <AppointmentCard
-                  patient="Amit Singh"
-                  time="10:30 AM"
-                  type="Follow up"
-                />
+            {activeTab === "Calendar" ? (
+              <DoctorAvailabilityCalendar slots={slots} />
+            ) : (
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 min-h-[260px]">
+                {activeAppointments.length > 0 ? (
+                  <div className="space-y-3">
+                    {activeAppointments.map((appt) => (
+                      <AppointmentCard key={appt._id} appointment={appt} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-[200px] text-sm text-gray-400">
+                    {activeTab === "Today"
+                      ? "No appointments today"
+                      : `No ${activeTab.toLowerCase()} appointments`}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
 
           {/* Availability */}
 
           <div className="col-span-12 lg:col-span-4">
-            <AvailabilityCard />
+            <AvailabilityCard slots={slots} />
           </div>
         </section>
       </main>
