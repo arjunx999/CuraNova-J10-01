@@ -6,43 +6,47 @@ import crypto from "crypto";
 import { sendConfirmation } from "../services/emailConfirmation.js";
 import { summarizeSymptoms } from "../services/symptomSum.js";
 import { appointmentQueue } from "../queues/appointmentQueue.js";
+import mongoose from "mongoose";
 
 export const initiateAppointment = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
     const userId = req.user.id;
     const { slotId } = req.params;
     const { dr_id } = req.body;
 
     if (!dr_id) {
-      return res
-        .status(400)
-        .json({ success: false, message: "doctor id not provided" });
+      return res.status(400).json({
+        success: false,
+        message: "doctor id not provided",
+      });
     }
 
+    session.startTransaction();
+
     const slot = await Slot.findOneAndUpdate(
-      { _id: slotId, doctor: dr_id, isAvailable: true },
-      { isAvailable: false, bookedBy: userId },
-      { new: true },
+      {
+        _id: slotId,
+        doctor: dr_id,
+        isAvailable: true,
+      },
+      {
+        isAvailable: false,
+        bookedBy: userId,
+      },
+      {
+        new: true,
+        session,
+      },
     );
 
     if (!slot) {
-      return res
-        .status(409)
-        .json({ success: false, message: "slot unavailable or invalid" });
-    }
-
-    const existing_appointment = await Appointment.findOne({
-      slot: slotId,
-    });
-    if (existing_appointment) {
-      await Slot.findByIdAndUpdate(slotId, {
-        isAvailable: true,
-        bookedBy: null,
-      });
+      await session.abortTransaction();
 
       return res.status(409).json({
         success: false,
-        message: "Appointment already exists",
+        message: "slot unavailable or invalid",
       });
     }
 
@@ -51,18 +55,30 @@ export const initiateAppointment = async (req, res) => {
       patient: userId,
       doctor: dr_id,
       payment_status: "pending",
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
 
-    await appointment.save();
+    await appointment.save({ session });
 
-    return res.status(200).json({
+    await session.commitTransaction();
+
+    return res.status(201).json({
       success: true,
-      message:
-        "appointment initiated successfully. complete payment to book appointment",
+      message: "appointment initiated. complete payment to book appointment",
+      appointmentId: appointment._id,
+      expiresAt: appointment.expiresAt,
     });
   } catch (error) {
-    return res.status(500).json({ success: false, error: error.message });
+    await session.abortTransaction();
+
+    console.error("Appointment initiation error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  } finally {
+    session.endSession();
   }
 };
 
@@ -144,6 +160,8 @@ export const verifyPayment = async (req, res) => {
       appointmentId,
     } = req.body;
 
+    const userId = req.user.id;
+
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_SECRET)
@@ -157,7 +175,10 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    const appointment = await Appointment.findById(appointmentId);
+    const appointment = await Appointment.findOne({
+      _id: appointmentId,
+      patient: userId,
+    });
 
     if (!appointment) {
       return res.status(404).json({
