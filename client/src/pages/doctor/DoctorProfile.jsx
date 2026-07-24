@@ -12,9 +12,11 @@ import {
   Users,
   Briefcase,
 } from "lucide-react";
-
+import toast from "react-hot-toast";
 import axios from "../../api/axios";
+import { useRazorpay } from "react-razorpay";
 import Navbar from "../../components/Navbar";
+import { useUser } from "../../../context/userContext";
 
 const formatDate = (date) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
@@ -104,6 +106,8 @@ const DoctorProfile = () => {
 
   const [selectedDay, setSelectedDay] = useState(days[0].fullDate);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const { Razorpay } = useRazorpay();
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchDoctor = async () => {
@@ -265,6 +269,96 @@ const DoctorProfile = () => {
       </div>
     );
   }
+
+  const initiateAppointmentHandler = async () => {
+    try {
+      const slotId = selectedSlot._id;
+      const dr_id = selectedSlot.doctor;
+      const res = await axios.post(
+        `/appointment/initiate-appointment/${slotId}`,
+        {
+          dr_id,
+        },
+      );
+      console.log(res);
+      initiatePaymentHandler();
+    } catch (error) {
+      console.log("error initiating appointment", error);
+      toast.error(
+        error.response?.data?.message || "Unable to initiate appointment",
+      );
+    }
+  };
+
+  const initiatePaymentHandler = async () => {
+    try {
+      const slotId = selectedSlot._id;
+      const dr_id = selectedSlot.doctor;
+      const res = await axios.post(`/appointment/initiate-payment/${slotId}`, {
+        dr_id,
+      });
+
+      if (res.data.success) {
+        const { order, appointment } = res.data;
+        openRazorpay(order, appointment._id);
+      }
+    } catch (error) {
+      console.log("error initiating payment", error);
+      toast.error(
+        error.response?.data?.message || "Unable to initiate payment",
+      );
+    }
+  };
+
+  const openRazorpay = (order, appointmentId) => {
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_8aUEbFky0uBSqT",
+      amount: order.amount,
+      currency: order.currency,
+      name: "CuraNova",
+      description: "Doctor Consultation",
+      order_id: order.id,
+
+      handler: async function (response) {
+        const paymentData = {
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          appointmentId,
+        };
+
+        await verifyPayment(paymentData);
+      },
+
+      prefill: {
+        name: user.name,
+        email: user.email,
+      },
+
+      theme: {
+        color: "#9300ec",
+      },
+    };
+
+    const razor = new window.Razorpay(options);
+
+    razor.open();
+  };
+
+  const verifyPayment = async (paymentData) => {
+    try {
+      const res = await axios.post("/appointment/verify-payment", paymentData);
+
+      if (res.data.success) {
+        toast.success("Payment successful! Appointment confirmed");
+
+        // navigate("/patient/home");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to verify payment");
+      console.log("error during payment verification", error);
+    }
+  };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f5f4f0] relative flex flex-col">
@@ -458,7 +552,9 @@ const DoctorProfile = () => {
                   <div className="grid grid-cols-3 gap-3">
                     {slotsForDay.map((slot) => {
                       const disabled =
-                        slot.is_booked || slot.status === "booked";
+                        !slot.isAvailable ||
+                        slot.is_booked ||
+                        slot.status === "booked";
 
                       const selected = selectedSlot?._id === slot._id;
 
@@ -467,12 +563,14 @@ const DoctorProfile = () => {
                           key={slot._id}
                           disabled={disabled}
                           onClick={() => setSelectedSlot(slot)}
-                          className={`h-[38px] rounded-xl border text-xs transition-all cursor-pointer ${
-                            disabled
-                              ? "bg-gray-50 text-gray-300 border-gray-100 line-through"
-                              : selected
-                                ? "bg-[#7c5ce8] text-white border-[#7c5ce8]"
-                                : "bg-white border-purple-100 text-[#7c5ce8] hover:bg-purple-50"
+                          className={`h-[38px] rounded-xl border text-xs transition-all ${
+                            !slot.isAvailable
+                              ? "bg-red-50 text-red-400 border-red-200 cursor-not-allowed"
+                              : disabled
+                                ? "bg-gray-50 text-gray-300 border-gray-100 line-through cursor-not-allowed"
+                                : selected
+                                  ? "bg-[#7c5ce8] text-white border-[#7c5ce8]"
+                                  : "bg-white border-purple-100 text-[#7c5ce8] hover:bg-purple-50 cursor-pointer"
                           }`}
                         >
                           {formatTime(slot.start_time)}
@@ -494,14 +592,15 @@ const DoctorProfile = () => {
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-gray-200" />
+                    <span className="w-2 h-2 rounded-full bg-red-200" />
                     Taken
                   </div>
                 </div>
 
                 <button
                   disabled={!selectedSlot}
-                  className="w-full mt-6 py-4 rounded-xl bg-[#7c5ce8] text-white disabled:bg-gray-200"
+                  onClick={initiateAppointmentHandler}
+                  className="w-full mt-6 py-4 rounded-xl bg-[#7c5ce8] text-white disabled:bg-gray-200 cursor-pointer"
                 >
                   {selectedSlot
                     ? `Continue - ${formatTime(selectedSlot.start_time)}`
