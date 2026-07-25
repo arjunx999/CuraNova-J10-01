@@ -237,11 +237,15 @@ const DoctorDashboard = () => {
       <main className="relative z-10 px-6 lg:px-12 py-8 max-w-[2000px] mx-auto">
         {/* Doctor Header */}
 
-        <section className="bg-white rounded-3xl border border-gray-100 p-6 flex items-center justify-between mb-6">
-          <div className="flex items-center gap-5">
-            <div className="w-20 h-20 rounded-2xl bg-[#ede9fe] text-[#7c5ce8] flex items-center justify-center font-semibold text-2xl overflow-hidden">
+        <section className="bg-white rounded-3xl border border-gray-100 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-6">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="hidden sm:flex w-20 h-20 rounded-2xl bg-[#ede9fe] text-[#7c5ce8] items-center justify-center font-semibold text-2xl overflow-hidden">
               {doctor?.profilePicture ? (
-                <img src={doctor.profilePicture} alt="" />
+                <img
+                  src={doctor.profilePicture}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <span>{initials}</span>
               )}
@@ -249,7 +253,7 @@ const DoctorDashboard = () => {
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-semibold text-gray-900">
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 truncate">
                   Dr. {doctor?.name}
                 </h1>
 
@@ -298,7 +302,7 @@ const DoctorDashboard = () => {
 
         {/* Stats */}
 
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <section className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <StatCard
             icon={Wallet}
             value={`₹${totalEarnings}`}
@@ -329,13 +333,13 @@ const DoctorDashboard = () => {
         <section className="grid grid-cols-12 gap-6">
           {/* Appointments / Calendar */}
 
-          <div className="col-span-12 lg:col-span-8">
-            <div className="flex gap-2 mb-3">
+          <div className="col-span-12 lg:col-span-8 min-w-0">
+            <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-full cursor-pointer text-sm transition ${
+                  className={`px-4 py-2 rounded-full shrink-0 cursor-pointer text-sm transition ${
                     activeTab === tab
                       ? "bg-[#7c5ce8] text-white"
                       : "bg-white text-gray-500"
@@ -373,7 +377,7 @@ const DoctorDashboard = () => {
 
           {/* Availability */}
 
-          <div className="col-span-12 lg:col-span-4">
+          <div className="col-span-12 lg:col-span-4 min-w-0">
             <AvailabilityCard slots={slots} onSlotCreated={fetchDoctor} />
           </div>
         </section>
@@ -416,7 +420,7 @@ const DoctorDashboard = () => {
             </div>
 
             {/* Body */}
-            <div className="p-6 max-h-[70vh] overflow-y-auto">
+            <div className="p-6 max-h-[75vh] sm:max-h-[70vh] overflow-y-auto">
               {typeof symptomData?.content === "string" ? (
                 <div
                   className="

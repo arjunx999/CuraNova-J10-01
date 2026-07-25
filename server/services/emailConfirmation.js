@@ -215,7 +215,7 @@ Thank you for choosing CuraNova.
 
     await Promise.all([sendMail(userMail), sendMail(doctorMail)]);
 
-    console.log("Confirmation emails sent");
+    // console.log("Confirmation emails sent");
   } catch (error) {
     console.error("Email error:", error.message);
   }

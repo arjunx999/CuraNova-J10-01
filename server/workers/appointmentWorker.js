@@ -13,7 +13,7 @@ const worker = new Worker(
 
     if (job.name === "summarizeSymptoms") {
       const summary = await summarizeSymptoms(job.data.patient_text);
-      console.log(summary);
+      // console.log(summary);
       await Appointment.findByIdAndUpdate(job.data.appointmentId, {
         summary,
         symptomStatus: "completed",

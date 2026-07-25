@@ -45,7 +45,7 @@ const AvailabilityCard = ({ onSlotCreated }) => {
     }
   };
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 p-5">
+    <div className="bg-white rounded-3xl border border-gray-100 p-4 sm:p-5">
       <h2 className="text-sm font-semibold text-gray-800 mb-5">
         Add availability
       </h2>
@@ -74,7 +74,7 @@ const AvailabilityCard = ({ onSlotCreated }) => {
 
         {/* Time */}
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div>
             <label className="text-xs text-gray-400 block mb-1">
               Start Time
@@ -117,7 +117,7 @@ const AvailabilityCard = ({ onSlotCreated }) => {
 
         {/* Slot + Break */}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-xs text-gray-400 block mb-1">
               Slot length(min)
@@ -125,7 +125,7 @@ const AvailabilityCard = ({ onSlotCreated }) => {
 
             <input
               className="
-              w-full h-10 rounded-xl
+              w-full h-11 rounded-xl
               border border-gray-200
               px-3
               text-sm
@@ -147,7 +147,7 @@ const AvailabilityCard = ({ onSlotCreated }) => {
 
             <input
               className="
-              w-full h-10 rounded-xl
+              w-full h-11 rounded-xl
               border border-gray-200
               px-3
               text-sm

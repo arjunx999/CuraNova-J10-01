@@ -41,6 +41,6 @@ app.use("/appointment", appointmentRoutes);
 app.post("/upload", upload.single("image"), uploadImage);
 
 const PORT = process.env.PORT || 7643;
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on ${PORT}`);
 });

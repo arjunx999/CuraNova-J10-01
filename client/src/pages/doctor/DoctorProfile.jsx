@@ -414,42 +414,39 @@ const DoctorProfile = () => {
             <ArrowLeft size={18} />
           </button>
 
-          <section className="bg-white rounded-3xl py-6 pl-6 pr-8 shadow-sm border border-gray-100 flex items-center justify-between gap-5 mb-6">
-            <div className="flex gap-5">
-              <div className="w-24 h-24 rounded-2xl bg-[#ede9fe] flex items-center justify-center text-[#7c5ce8] text-3xl font-semibold overflow-hidden">
-                {doctor.profilePicture ? (
+          <section className="bg-white rounded-3xl p-5 sm:py-6 sm:pl-6 sm:pr-8shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-6">
+            <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+              <div className="hidden sm:flex w-20 h-20 rounded-2xl bg-[#ede9fe] text-[#7c5ce8] items-center justify-center font-semibold text-2xl overflow-hidden">
+                {doctor?.profilePicture ? (
                   <img
                     src={doctor.profilePicture}
-                    alt={doctor.name}
-                    loading="lazy"
+                    alt=""
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  initials
+                  <span>{initials}</span>
                 )}
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-semibold text-gray-900">
+                  <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 truncate">
                     {doctor.name}
                   </h1>
 
                   {doctor.isVerified && (
                     <BadgeCheck
                       size={18}
-                      className="text-[#9b87f5] fill-[#ede9fe]"
+                      className="text-[#9b87f5] fill-[#ede9fe] shrink-0"
                     />
                   )}
                 </div>
 
-                {doctor.degrees?.length > 0 && (
-                  <p className="text-sm text-gray-400 mt-1">
-                    {doctor.degrees.join(", ")}
-                  </p>
-                )}
+                <p className="text-sm text-gray-400 mt-1 truncate">
+                  {doctor.degrees.join(", ")}
+                </p>
 
-                <div className="flex gap-3 mt-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
                   {doctor.department && (
                     <span className="px-3 py-1 rounded-full bg-[#f3edff] text-[#7c5ce8] text-xs">
                       {doctor.department}
@@ -467,7 +464,7 @@ const DoctorProfile = () => {
             </div>
 
             {doctor.consultation_fee != null && (
-              <div className="text-right">
+              <div className="text-left md:text-right shrink-0">
                 <p className="text-3xl font-semibold">
                   ₹{doctor.consultation_fee}
                 </p>
@@ -607,7 +604,7 @@ const DoctorProfile = () => {
                                 ? "bg-gray-50 text-gray-300 border-gray-100 line-through cursor-not-allowed"
                                 : selected
                                   ? "bg-[#7c5ce8] text-white border-[#7c5ce8]"
-                                  : "bg-white border-purple-100 text-[#7c5ce8] hover:bg-purple-50 cursor-pointer"
+                                  : "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 cursor-pointer"
                           }`}
                         >
                           {formatTime(slot.start_time)}

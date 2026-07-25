@@ -2,7 +2,8 @@ import axios from "axios";
 import { getAccessToken, clearAccessToken, setAccessToken } from "./tokenStore";
 
 const instance = axios.create({
-  baseURL: "http://localhost:7643",
+  // baseURL: "http://localhost:7643",
+  baseURL: "http://192.168.0.101:7643",
   withCredentials: true,
 });
 
