@@ -158,9 +158,7 @@ export const getDoctorDashboard = async (req, res) => {
   try {
     const dr_id = req.user.id;
 
-    const doctor = await Doctor.findById(dr_id)
-      // .select("rating rating_count consultation_fee")
-      .lean();
+    const doctor = await Doctor.findById(dr_id).lean();
     if (!doctor) {
       return res
         .status(401)
@@ -172,6 +170,18 @@ export const getDoctorDashboard = async (req, res) => {
 
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
+
+    const [todaySlotIds, upcomingSlotIds] = await Promise.all([
+      Slot.find({
+        doctor: dr_id,
+        date: { $gte: startOfDay, $lte: endOfDay },
+      }).distinct("_id"),
+
+      Slot.find({
+        doctor: dr_id,
+        date: { $gt: endOfDay },
+      }).distinct("_id"),
+    ]);
 
     const [
       totalAppointments,
@@ -193,22 +203,22 @@ export const getDoctorDashboard = async (req, res) => {
         .populate("slot", "date start_time end_time")
         .lean(),
 
-      Appointment.find({ doctor: dr_id })
+      Appointment.find({
+        doctor: dr_id,
+        slot: { $in: todaySlotIds },
+        payment_status: "confirmed",
+      })
         .populate("patient", "name email")
-        .populate({
-          path: "slot",
-          match: { date: { $gte: startOfDay, $lte: endOfDay } },
-          select: "date start_time end_time",
-        })
+        .populate("slot", "date start_time end_time")
         .lean(),
 
-      Appointment.find({ doctor: dr_id })
+      Appointment.find({
+        doctor: dr_id,
+        slot: { $in: upcomingSlotIds },
+        payment_status: "confirmed",
+      })
         .populate("patient", "name email")
-        .populate({
-          path: "slot",
-          match: { date: { $gt: endOfDay } },
-          select: "date start_time end_time",
-        })
+        .populate("slot", "date start_time end_time")
         .lean(),
 
       Slot.find({ doctor: dr_id, date: { $gte: startOfDay } }).lean(),
@@ -229,7 +239,6 @@ export const getDoctorDashboard = async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
-
 export const getDoctorInfo = async (req, res) => {
   try {
     const { id } = req.params;

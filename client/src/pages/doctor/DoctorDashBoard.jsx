@@ -83,25 +83,24 @@ const DoctorDashboard = () => {
   const [completedAppointments, setCompletedAppointments] = useState([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
 
+  const fetchDoctor = async () => {
+    try {
+      const res = await axios.get(`/doctor/dashboard`);
+      const { doctor, appointment_data, totalEarnings } = res.data;
+
+      setDoctor(doctor);
+      setSlots(appointment_data?.slots || []);
+      setTodayAppointments(appointment_data?.todayAppointments || []);
+      setUpcomingAppointments(appointment_data?.upcomingAppointments || []);
+      setCompletedAppointments(appointment_data?.completedAppointments || []);
+      setTotalEarnings(totalEarnings || 0);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     if (!user?._id) return;
-
-    const fetchDoctor = async () => {
-      try {
-        const res = await axios.get(`/doctor/dashboard`);
-        const { doctor, appointment_data, totalEarnings } = res.data;
-
-        setDoctor(doctor);
-        setSlots(appointment_data?.slots || []);
-        setTodayAppointments(appointment_data?.todayAppointments || []);
-        setUpcomingAppointments(appointment_data?.upcomingAppointments || []);
-        setCompletedAppointments(appointment_data?.completedAppointments || []);
-        setTotalEarnings(totalEarnings || 0);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
     fetchDoctor();
   }, [user]);
 
@@ -174,7 +173,7 @@ const DoctorDashboard = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 mr-4">
             <div className="text-right">
               <p className="text-2xl font-semibold">
                 ₹{doctor?.consultation_fee || 0}
@@ -183,12 +182,12 @@ const DoctorDashboard = () => {
               <p className="text-xs text-gray-400">per consult</p>
             </div>
 
-            <button
+            {/* <button
               onClick={() => setShowEditProfile(true)}
               className="px-4 py-2 rounded-xl border border-[#9b87f5] text-[#7c5ce8] text-sm hover:bg-[#ede9fe] transition cursor-pointer"
             >
               Edit profile
-            </button>
+            </button> */}
           </div>
         </section>
 
@@ -266,18 +265,18 @@ const DoctorDashboard = () => {
           {/* Availability */}
 
           <div className="col-span-12 lg:col-span-4">
-            <AvailabilityCard slots={slots} />
+            <AvailabilityCard slots={slots} onSlotCreated={fetchDoctor} />
           </div>
         </section>
       </main>
 
-      {showEditProfile && (
+      {/* {showEditProfile && (
         <EditProfileModal
           doctor={doctor}
           close={() => setShowEditProfile(false)}
           updateDoctor={setDoctor}
         />
-      )}
+      )} */}
     </div>
   );
 };

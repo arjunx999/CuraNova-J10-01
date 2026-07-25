@@ -3,7 +3,7 @@ import { useState } from "react";
 import axios from "../../api/axios";
 import toast from "react-hot-toast";
 
-const AvailabilityCard = () => {
+const AvailabilityCard = ({ onSlotCreated }) => {
   const [formData, setFormData] = useState({
     date: "",
     start_time: "",
@@ -29,7 +29,6 @@ const AvailabilityCard = () => {
         withCredentials: true,
       });
 
-      console.log(res.data);
       toast.success(res.data.message);
 
       setFormData({
@@ -39,11 +38,12 @@ const AvailabilityCard = () => {
         slot_duration: 0,
         break_duration: 0,
       });
+
+      onSlotCreated?.();
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
-
   return (
     <div className="bg-white rounded-3xl border border-gray-100 p-5">
       <h2 className="text-sm font-semibold text-gray-800 mb-5">
