@@ -6,6 +6,7 @@ import {
   Wallet,
   Star,
   BadgeCheck,
+  Sparkles,
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import axios from "../../api/axios";
@@ -30,41 +31,127 @@ const StatCard = ({ icon: Icon, value, label }) => {
   );
 };
 
-const AppointmentCard = ({ appointment }) => {
-  const patientName =
-    appointment?.patientName ||
-    appointment?.patient?.name ||
-    appointment?.bookedBy?.name ||
-    "Patient";
+const formatTime = (time24) => {
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return `${hour}:${m.toString().padStart(2, "0")} ${period}`;
+};
 
-  const time = appointment?.start_time || appointment?.time || "--:--";
+const formatDate = (date) => {
+  if (!date) return "";
 
-  const type =
-    appointment?.type || appointment?.consultationType || "Consultation";
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+  });
+};
+
+const AppointmentCard = ({ appointment, onViewSymptoms }) => {
+  const patientName = appointment?.patient?.name || "Patient";
+
+  const time = formatTime(appointment?.slot?.start_time);
+  const date = formatDate(appointment?.slot?.date);
 
   return (
-    <div className="bg-[#faf9ff] border border-[#ede9fe] rounded-xl p-4 flex items-center justify-between">
-      <div>
-        <h3 className="text-sm font-medium text-gray-900">{patientName}</h3>
+    <div className="bg-[#faf9ff] border border-[#ede9fe] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="min-w-0">
+        <h3 className="text-sm font-semibold text-gray-900 truncate">
+          {patientName}
+        </h3>
 
         <p className="text-xs text-gray-400 mt-1">
-          {time} • {type}
+          {date} · {time}
         </p>
       </div>
 
-      <button
-        className="
-          px-4 py-2
-          rounded-lg
-          bg-[#7c5ce8]
-          text-white
-          text-xs
-          hover:bg-[#9b87f5]
-          transition
-        "
-      >
-        Start
-      </button>
+      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        <button
+          onClick={() => onViewSymptoms(appointment, "raw")}
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white border border-[#ddd6fe] text-[#7c5ce8] text-xs font-medium hover:bg-[#f5f3ff] transition cursor-pointer"
+        >
+          View symptoms
+        </button>
+
+        <button
+          onClick={() => onViewSymptoms(appointment, "summary")}
+          className="
+    w-full sm:w-auto
+    px-4 py-2.5
+    rounded-xl
+    bg-white
+    border border-[#ddd6fe]
+    text-xs font-medium
+    hover:bg-[#faf9ff]
+    transition
+    cursor-pointer
+    flex items-center justify-center gap-1.5
+  "
+        >
+          <Sparkles size={14} className="text-[#9b87f5]" />
+
+          <span
+            className="
+      bg-gradient-to-r
+      from-[#7c5ce8]
+      via-[#9b87f5]
+      to-[#c084fc]
+      bg-clip-text
+      text-transparent
+      font-semibold
+    "
+          >
+            AI Summary
+          </span>
+        </button>
+
+        <button className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#7c5ce8] text-white text-xs font-semibold hover:bg-[#6d4bd8] transition cursor-pointer">
+          Start
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const SummarySection = ({ title, icon, items = [] }) => {
+  return (
+    <div
+      className="
+      bg-white
+      border border-gray-100
+      rounded-2xl
+      p-4
+      shadow-sm
+    "
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+      </div>
+
+      <div className="space-y-2">
+        {items?.length ? (
+          items.map((item, i) => (
+            <div
+              key={i}
+              className="
+                flex gap-2
+                text-sm
+                text-gray-600
+                bg-[#faf9ff]
+                rounded-xl
+                px-3
+                py-2
+              "
+            >
+              <span className="text-[#7c5ce8]">•</span>
+
+              {item}
+            </div>
+          ))
+        ) : (
+          <p className="text-xs text-gray-400">No information available</p>
+        )}
+      </div>
     </div>
   );
 };
@@ -82,6 +169,24 @@ const DoctorDashboard = () => {
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [completedAppointments, setCompletedAppointments] = useState([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
+  const [viewSymptomSection, setViewSymptomSection] = useState(false);
+  const [symptomData, setSymptomData] = useState();
+
+  const fetchSymptoms = (appointment, type) => {
+    if (type === "raw") {
+      setSymptomData({
+        title: "Patient Symptoms",
+        content: appointment?.patientSymptoms,
+      });
+    } else {
+      setSymptomData({
+        title: "AI Summary",
+        content: appointment?.summary,
+      });
+    }
+
+    setViewSymptomSection(true);
+  };
 
   const fetchDoctor = async () => {
     try {
@@ -248,7 +353,11 @@ const DoctorDashboard = () => {
                 {activeAppointments.length > 0 ? (
                   <div className="space-y-3">
                     {activeAppointments.map((appt) => (
-                      <AppointmentCard key={appt._id} appointment={appt} />
+                      <AppointmentCard
+                        key={appt._id}
+                        appointment={appt}
+                        onViewSymptoms={fetchSymptoms}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -277,6 +386,93 @@ const DoctorDashboard = () => {
           updateDoctor={setDoctor}
         />
       )} */}
+
+      {viewSymptomSection && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+          <div className="bg-white w-full max-w-[600px] rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-[#7c5ce8] to-[#9b87f5] p-6 text-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold mt-3">
+                    {symptomData?.title}
+                  </h2>
+                </div>
+
+                <button
+                  onClick={() => setViewSymptomSection(false)}
+                  className="
+              w-8 h-8
+              rounded-full
+              bg-white/20
+              hover:bg-white/30
+              transition
+              cursor-pointer
+            "
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+              {typeof symptomData?.content === "string" ? (
+                <div
+                  className="
+            bg-[#faf9ff]
+            border border-[#ede9fe]
+            rounded-2xl
+            p-5
+          "
+                >
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {symptomData.content}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <SummarySection
+                    title="Reported Symptoms"
+                    items={symptomData?.content?.symptoms}
+                  />
+
+                  <SummarySection
+                    title="Notable Points"
+                    items={symptomData?.content?.notablePoints}
+                  />
+
+                  <SummarySection
+                    title="Possible Concerns"
+                    items={symptomData?.content?.possibleConcerns}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 pb-6">
+              <button
+                onClick={() => setViewSymptomSection(false)}
+                className="
+            w-full
+            py-3
+            rounded-xl
+            bg-[#7c5ce8]
+            text-white
+            text-sm
+            font-medium
+            hover:bg-[#6d4bd8]
+            transition
+            cursor-pointer
+          "
+              >
+                Close summary
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
