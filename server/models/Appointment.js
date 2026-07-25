@@ -30,10 +30,30 @@ const appointmentSchema = mongoose.Schema(
       required: true,
       unique: true,
     },
+    patientSymptoms: {
+      type: String,
+      default: null,
+    },
     summary: {
-      symptoms: [String],
-      notablePoints: [String],
-      possibleConcerns: [String],
+      symptoms: {
+        type: [String],
+        default: [],
+      },
+
+      notablePoints: {
+        type: [String],
+        default: [],
+      },
+
+      possibleConcerns: {
+        type: [String],
+        default: [],
+      },
+    },
+    symptomStatus: {
+      type: String,
+      enum: ["not_submitted", "processing", "completed", "failed"],
+      default: "not_submitted",
     },
     expiresAt: {
       type: Date,

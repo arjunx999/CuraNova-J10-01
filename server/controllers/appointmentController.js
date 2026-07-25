@@ -233,10 +233,35 @@ export const symptomSummary = async (req, res) => {
       });
     }
 
-    await appointmentQueue.add("summarizeSymptoms", {
-      patient_text,
-      appointmentId,
-    });
+    if (
+      appointment.symptomStatus === "processing" ||
+      appointment.symptomStatus === "completed"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Symptoms already submitted",
+      });
+    }
+
+    appointment.patientSymptoms = patient_text.trim();
+    appointment.symptomStatus = "processing";
+
+    await appointment.save();
+
+    await appointmentQueue.add(
+      "summarizeSymptoms",
+      {
+        patient_text: patient_text.trim(),
+        appointmentId,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+      },
+    );
 
     return res.status(200).json({
       success: true,

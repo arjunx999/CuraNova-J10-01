@@ -103,9 +103,18 @@ const DoctorProfile = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-
   const [selectedDay, setSelectedDay] = useState(days[0].fullDate);
+
   const [selectedSlot, setSelectedSlot] = useState(null);
+
+  const [showSymptomForm, setShowSymptomForm] = useState(false);
+  const [symptoms, setSymptoms] = useState("");
+  const [appointmentId, setAppointmentId] = useState(null);
+  const skipSymptomsHandler = () => {
+    setShowSymptomForm(false);
+    navigate("/patient/home");
+  };
+
   const { Razorpay } = useRazorpay();
   const { user } = useUser();
 
@@ -350,13 +359,41 @@ const DoctorProfile = () => {
       const res = await axios.post("/appointment/verify-payment", paymentData);
 
       if (res.data.success) {
-        toast.success("Payment successful! Appointment confirmed");
+        toast.success("Payment successful!");
 
-        // navigate("/patient/home");
+        setAppointmentId(paymentData.appointmentId);
+        setShowSymptomForm(true);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Unable to verify payment");
       console.log("error during payment verification", error);
+    }
+  };
+
+  const submitSymptoms = async () => {
+    try {
+      if (!symptoms.trim()) {
+        toast.error("Please describe your symptoms");
+        return;
+      }
+
+      const res = await axios.post(
+        `/appointment/summarize-symptoms/${appointmentId}`,
+        {
+          patient_text: symptoms,
+        },
+      );
+
+      if (res.data.success) {
+        toast.success("Symptoms submitted");
+
+        setShowSymptomForm(false);
+        navigate("/patient/home");
+      }
+    } catch (error) {
+      console.log("error submitting symptoms", error);
+
+      toast.error(error.response?.data?.message || "Unable to submit symptoms");
     }
   };
 
@@ -611,6 +648,47 @@ const DoctorProfile = () => {
           </div>
         </div>
       </main>
+
+      {showSymptomForm && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white w-full max-w-[560px] rounded-3xl p-8 shadow-xl">
+            <span className="inline-block px-3 py-1 rounded-full bg-[#f3edff] text-[#7c5ce8] text-[11px] font-medium mb-3">
+              AI-powered visit prep
+            </span>
+
+            <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
+              Help your doctor walk in prepared
+            </h2>
+
+            <p className="text-sm text-gray-400 mt-2 leading-relaxed">
+              Describe what you're experiencing and we'll turn it into a clean
+              clinical summary — so your appointment starts with answers, not
+              small talk.
+            </p>
+
+            <textarea
+              value={symptoms}
+              onChange={(e) => setSymptoms(e.target.value)}
+              placeholder="Example: Fever since 3 days, headache, body pain, worse at night..."
+              className="w-full h-64 mt-6 rounded-xl border border-gray-200 p-4 text-sm resize-none focus:outline-none focus:border-[#9b87f5]"
+            />
+
+            <button
+              onClick={submitSymptoms}
+              className="w-full mt-5 py-3.5 rounded-xl bg-[#7c5ce8] text-white font-medium hover:bg-[#6d4fd8] transition-colors cursor-pointer"
+            >
+              Generate my summary
+            </button>
+
+            <button
+              onClick={skipSymptomsHandler}
+              className="w-full mt-2.5 py-3 rounded-xl text-[#7c5ce8] text-sm font-medium hover:bg-[#faf9ff] transition-colors cursor-pointer"
+            >
+              I'll do this later from my dashboard
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

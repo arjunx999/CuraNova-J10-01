@@ -15,6 +15,6 @@ router.post("/initiate-payment/:slotId", verifyToken, initiatePayment);
 
 router.post("/verify-payment", verifyToken, verifyPayment);
 
-router.post("/summarize-symptoms", verifyToken, symptomSummary);
+router.post("/summarize-symptoms/:appointmentId", verifyToken, symptomSummary);
 
 export default router;
