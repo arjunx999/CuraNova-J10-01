@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 html {
-  font-size: 100%;
+  font-size: 125%;
 }
 
-@media (min-width: 1024px) {
+/* @media (min-width: 1024px) {
   html {
     font-size: 125%;
   }
-}
+} */
 
 .gradient1 {
   background:

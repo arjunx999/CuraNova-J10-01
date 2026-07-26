@@ -38,22 +38,6 @@ const DoctorCard = ({ doctor }) => {
     .map((n) => n[0])
     .join("");
 
-  const slotBadge = () => {
-    if (doctor.slotsToday > 1)
-      return (
-        <span className="text-xs text-[#7c5ce8] font-medium">
-          ● {doctor.slotsToday} slots available today
-        </span>
-      );
-    if (doctor.slotsToday === 1)
-      return (
-        <span className="text-xs text-amber-500 font-medium">
-          ● 1 slot left today
-        </span>
-      );
-    return <span className="text-xs text-gray-400">● No slots today</span>;
-  };
-
   const Navigate = useNavigate();
 
   return (
@@ -122,16 +106,9 @@ const DoctorCard = ({ doctor }) => {
           <span className="text-xs text-gray-400 block">per consult</span>
         </div>
       </div>
-      {slotBadge()}
-      {doctor.slotsToday > 0 ? (
-        <button className="w-full py-2.5 bg-[#7c5ce8] hover:bg-[#9b87f5] transition-colors duration-200 text-white text-sm font-medium rounded-xl cursor-pointer">
-          Book appointment
-        </button>
-      ) : (
-        <button className="w-full py-2.5 bg-white border border-[#9b87f5] text-[#7c5ce8] hover:bg-[#ede9fe] transition-colors duration-200 text-sm font-medium rounded-xl cursor-pointer">
-          View availability
-        </button>
-      )}
+      <button className="w-full py-2.5 bg-white border border-[#9b87f5] text-[#7c5ce8] hover:bg-[#ede9fe] transition-colors duration-200 text-sm font-medium rounded-xl cursor-pointer">
+        View availability
+      </button>
     </div>
   );
 };
@@ -139,7 +116,6 @@ const DoctorCard = ({ doctor }) => {
 const PatientHome = () => {
   const [activeDept, setActiveDept] = useState("All");
   const [activeSort, setActiveSort] = useState("rating");
-  const [availableToday, setAvailableToday] = useState(false);
   const [search, setSearch] = useState("");
   const [doctors, setDoctors] = useState([]);
   const Navigate = useNavigate();
@@ -151,7 +127,6 @@ const PatientHome = () => {
           params: {
             department: activeDept,
             sort: activeSort,
-            available_today: availableToday,
           },
         });
         setDoctors(res.data.doctors);
@@ -161,7 +136,7 @@ const PatientHome = () => {
       }
     };
     fetchDoctors();
-  }, [activeDept, activeSort, availableToday]);
+  }, [activeDept, activeSort]);
 
   const filteredDoctors = doctors.filter((doc) =>
     search.trim() === ""
@@ -268,19 +243,8 @@ const PatientHome = () => {
               {filteredDoctors.length} doctors
             </span>
           </span>
-          {/* sort + available chips — scrollable on mobile */}
+          {/* sort — scrollable on mobile */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-            <button
-              onClick={() => setAvailableToday((prev) => !prev)}
-              className={`px-4 py-1.5 rounded-full text-xs border transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0
-                ${
-                  availableToday
-                    ? "bg-[#ede9fe] text-[#7c5ce8] border-[#9b87f5] font-medium"
-                    : "bg-white text-gray-500 border-gray-200 hover:border-[#9b87f5] hover:text-[#7c5ce8]"
-                }`}
-            >
-              ● Available today
-            </button>
             {sortOptions.map((opt) => (
               <button
                 key={opt.value}
