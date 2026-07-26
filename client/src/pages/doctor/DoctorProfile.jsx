@@ -431,7 +431,7 @@ const DoctorProfile = () => {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 truncate">
-                    {doctor.name}
+                    Dr. {doctor.name}
                   </h1>
 
                   {doctor.isVerified && (

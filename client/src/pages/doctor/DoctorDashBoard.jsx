@@ -156,6 +156,10 @@ const SummarySection = ({ title, icon, items = [] }) => {
   );
 };
 
+const SkeletonBlock = ({ className = "" }) => (
+  <div className={`bg-[#ede9fe] rounded-xl animate-pulse ${className}`} />
+);
+
 const DoctorDashboard = () => {
   const [doctor, setDoctor] = useState(null);
 
@@ -171,6 +175,7 @@ const DoctorDashboard = () => {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [viewSymptomSection, setViewSymptomSection] = useState(false);
   const [symptomData, setSymptomData] = useState();
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchSymptoms = (appointment, type) => {
     if (type === "raw") {
@@ -190,6 +195,7 @@ const DoctorDashboard = () => {
 
   const fetchDoctor = async () => {
     try {
+      setIsLoading(true);
       const res = await axios.get(`/doctor/dashboard`);
       const { doctor, appointment_data, totalEarnings } = res.data;
 
@@ -201,6 +207,8 @@ const DoctorDashboard = () => {
       setTotalEarnings(totalEarnings || 0);
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -238,94 +246,128 @@ const DoctorDashboard = () => {
         {/* Doctor Header */}
 
         <section className="bg-white rounded-3xl border border-gray-100 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-6">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="hidden sm:flex w-20 h-20 rounded-2xl bg-[#ede9fe] text-[#7c5ce8] items-center justify-center font-semibold text-2xl overflow-hidden">
-              {doctor?.profilePicture ? (
-                <img
-                  src={doctor.profilePicture}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span>{initials}</span>
-              )}
+          {isLoading ? (
+            <div className="flex items-center gap-4 w-full">
+              <SkeletonBlock className="hidden sm:block w-20 h-20 rounded-2xl" />
+              <div className="flex-1 space-y-2">
+                <SkeletonBlock className="h-6 w-48" />
+                <SkeletonBlock className="h-4 w-32" />
+                <SkeletonBlock className="h-5 w-24" />
+              </div>
+              <SkeletonBlock className="h-8 w-20" />
             </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="hidden sm:flex w-20 h-20 rounded-2xl bg-[#ede9fe] text-[#7c5ce8] items-center justify-center font-semibold text-2xl overflow-hidden">
+                  {doctor?.profilePicture ? (
+                    <img
+                      src={doctor.profilePicture}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{initials}</span>
+                  )}
+                </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 truncate">
-                  Dr. {doctor?.name}
-                </h1>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 truncate">
+                      Dr. {doctor?.name}
+                    </h1>
 
-                <BadgeCheck
-                  size={18}
-                  className="text-[#7c5ce8] fill-[#ede9fe]"
-                />
+                    <BadgeCheck
+                      size={18}
+                      className="text-[#7c5ce8] fill-[#ede9fe]"
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-400 mt-1">
+                    {doctor?.department || "Department"} •{" "}
+                    {doctor?.hospital_name || "Hospital"}
+                  </p>
+
+                  <div className="flex items-center gap-3 mt-3">
+                    <span className="px-3 py-1 rounded-full bg-[#ede9fe] text-[#7c5ce8] text-xs">
+                      🟢 Verified
+                    </span>
+
+                    <span className="flex items-center gap-1 text-xs text-gray-400">
+                      <Star
+                        size={12}
+                        className="fill-[#9b87f5] text-[#9b87f5]"
+                      />
+
+                      {doctor?.rating || 0}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <p className="text-sm text-gray-400 mt-1">
-                {doctor?.department || "Department"} •{" "}
-                {doctor?.hospital_name || "Hospital"}
-              </p>
+              <div className="flex items-center gap-5 mr-4">
+                <div className="text-right">
+                  <p className="text-2xl font-semibold">
+                    ₹{doctor?.consultation_fee || 0}
+                  </p>
 
-              <div className="flex items-center gap-3 mt-3">
-                <span className="px-3 py-1 rounded-full bg-[#ede9fe] text-[#7c5ce8] text-xs">
-                  🟢 Available today
-                </span>
+                  <p className="text-xs text-gray-400">per consult</p>
+                </div>
 
-                <span className="flex items-center gap-1 text-xs text-gray-400">
-                  <Star size={12} className="fill-[#9b87f5] text-[#9b87f5]" />
-
-                  {doctor?.rating || 0}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-5 mr-4">
-            <div className="text-right">
-              <p className="text-2xl font-semibold">
-                ₹{doctor?.consultation_fee || 0}
-              </p>
-
-              <p className="text-xs text-gray-400">per consult</p>
-            </div>
-
-            {/* <button
+                {/* <button
               onClick={() => setShowEditProfile(true)}
               className="px-4 py-2 rounded-xl border border-[#9b87f5] text-[#7c5ce8] text-sm hover:bg-[#ede9fe] transition cursor-pointer"
             >
               Edit profile
             </button> */}
-          </div>
+              </div>
+            </>
+          )}
         </section>
 
         {/* Stats */}
 
         <section className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard
-            icon={Wallet}
-            value={`₹${totalEarnings}`}
-            label="Total earnings"
-          />
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4"
+              >
+                <SkeletonBlock className="w-11 h-11 rounded-xl" />
+                <div className="space-y-2 flex-1">
+                  <SkeletonBlock className="h-5 w-16" />
+                  <SkeletonBlock className="h-3 w-20" />
+                </div>
+              </div>
+            ))
+          ) : (
+            <>
+              <StatCard
+                icon={Wallet}
+                value={`₹${totalEarnings}`}
+                label="Total earnings"
+              />
 
-          <StatCard
-            icon={Users}
-            value={todayAppointments.length}
-            label="Today's appointments"
-          />
+              <StatCard
+                icon={Users}
+                value={todayAppointments.length}
+                label="Today's appointments"
+              />
 
-          <StatCard
-            icon={CalendarDays}
-            value={upcomingAppointments.length}
-            label="Upcoming appointments"
-          />
+              <StatCard
+                icon={CalendarDays}
+                value={upcomingAppointments.length}
+                label="Upcoming appointments"
+              />
 
-          <StatCard
-            icon={CheckCircle}
-            value={completedAppointments.length}
-            label="Completed"
-          />
+              <StatCard
+                icon={CheckCircle}
+                value={completedAppointments.length}
+                label="Completed"
+              />
+            </>
+          )}
         </section>
 
         {/* Main Grid */}
@@ -354,7 +396,16 @@ const DoctorDashboard = () => {
               <DoctorAvailabilityCalendar slots={slots} />
             ) : (
               <div className="bg-white rounded-3xl border border-gray-100 p-6 min-h-[260px]">
-                {activeAppointments.length > 0 ? (
+                {isLoading ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <SkeletonBlock
+                        key={i}
+                        className="h-20 w-full rounded-2xl"
+                      />
+                    ))}
+                  </div>
+                ) : activeAppointments.length > 0 ? (
                   <div className="space-y-3">
                     {activeAppointments.map((appt) => (
                       <AppointmentCard
