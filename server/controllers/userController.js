@@ -5,7 +5,9 @@ export const getUserDashboard = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const user = await User.findById(userId).lean();
+    const user = await User.findById(userId)
+      .select("-password -refreshToken -refreshTokenExpire ")
+      .lean();
 
     if (!user) {
       return res
@@ -26,22 +28,19 @@ export const getUserDashboard = async (req, res) => {
 
       Appointment.find({
         patient: userId,
+        status: "confirmed",
+        payment_status: "confirmed",
       })
         .populate("doctor", "name email")
-        .populate({
-          path: "slot",
-          match: { date: { $gt: now } },
-          select: "date start_time end_time",
-        })
+        .populate("slot", "date start_time end_time")
         .lean(),
     ]);
 
     return res.status(200).json({
       success: true,
-      data: {
-        upcomingAppointments,
-        completedAppointments,
-      },
+      user,
+      upcomingAppointments,
+      completedAppointments,
     });
   } catch (error) {
     return res.status(500).json({

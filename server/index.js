@@ -7,6 +7,7 @@ import { uploadImage } from "./controllers/uploadController.js";
 import authRoutes from "./routes/authRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import "./utils/cronJobs.js";
 import "./workers/appointmentWorker.js";
 import "./workers/imageWorker.js";
@@ -40,6 +41,7 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/doctor", doctorRoutes);
 app.use("/appointment", appointmentRoutes);
+app.use("/patient", userRoutes);
 
 app.post("/upload", upload.single("image"), uploadImage);
 

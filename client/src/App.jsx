@@ -15,6 +15,7 @@ import { setAccessToken } from "./api/tokenStore";
 import DoctorDashBoard from "./pages/doctor/DoctorDashBoard";
 import { Navigate } from "react-router-dom";
 import DoctorProfile from "./pages/doctor/DoctorProfile";
+import PatientDashboard from "./pages/patient/PatientDashboard";
 
 const PublicRoute = ({ children }) => {
   const { user } = useUser();
@@ -102,6 +103,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <PatientHome />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/patient/:id/dashboard"
+          element={
+            <PrivateRoute>
+              <PatientDashboard />
             </PrivateRoute>
           }
         />

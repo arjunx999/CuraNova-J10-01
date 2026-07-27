@@ -47,18 +47,55 @@ const formatDate = (date) => {
   });
 };
 
-const AppointmentCard = ({ appointment, onViewSymptoms }) => {
+const isSlotLive = (slot, now) => {
+  if (!slot?.date || !slot?.start_time || !slot?.end_time) return false;
+
+  const slotDate = new Date(slot.date);
+  const isSameDay =
+    slotDate.getFullYear() === now.getFullYear() &&
+    slotDate.getMonth() === now.getMonth() &&
+    slotDate.getDate() === now.getDate();
+
+  if (!isSameDay) return false;
+
+  const [sh, sm] = slot.start_time.split(":").map(Number);
+  const [eh, em] = slot.end_time.split(":").map(Number);
+
+  const start = new Date(slotDate);
+  start.setHours(sh, sm, 0, 0);
+
+  const end = new Date(slotDate);
+  end.setHours(eh, em, 0, 0);
+
+  return now >= start && now <= end;
+};
+
+const AppointmentCard = ({ appointment, onViewSymptoms, now }) => {
   const patientName = appointment?.patient?.name || "Patient";
 
   const time = formatTime(appointment?.slot?.start_time);
   const date = formatDate(appointment?.slot?.date);
+  const live = isSlotLive(appointment?.slot, now);
 
   return (
-    <div className="bg-[#faf9ff] border border-[#ede9fe] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div
+      className={`
+        border rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition
+        ${live ? "blink-live border-red-200 bg-red-50" : "bg-[#faf9ff] border-[#ede9fe]"}
+      `}
+    >
       <div className="min-w-0">
-        <h3 className="text-sm font-semibold text-gray-900 truncate">
-          {patientName}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-gray-900 truncate">
+            {patientName}
+          </h3>
+
+          {live && (
+            <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-semibold blink-live">
+              Live now
+            </span>
+          )}
+        </div>
 
         <p className="text-xs text-gray-400 mt-1">
           {date} · {time}
@@ -105,7 +142,12 @@ const AppointmentCard = ({ appointment, onViewSymptoms }) => {
           </span>
         </button>
 
-        <button className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#7c5ce8] text-white text-xs font-semibold hover:bg-[#6d4bd8] transition cursor-pointer">
+        <button
+          className={`
+            w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer
+            ${live ? "bg-red-500 hover:bg-red-600 text-white blink-live" : "bg-[#7c5ce8] hover:bg-[#6d4bd8] text-white"}
+          `}
+        >
           Start
         </button>
       </div>
@@ -176,6 +218,12 @@ const DoctorDashboard = () => {
   const [viewSymptomSection, setViewSymptomSection] = useState(false);
   const [symptomData, setSymptomData] = useState();
   const [isLoading, setIsLoading] = useState(true);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchSymptoms = (appointment, type) => {
     if (type === "raw") {
@@ -234,6 +282,16 @@ const DoctorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f4f0] relative overflow-hidden">
+      <style>{`
+        @keyframes blink-red {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.55; }
+        }
+        .blink-live {
+          animation: blink-red 1.2s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Background */}
 
       <div className="absolute inset-0 blob1 opacity-50" />
@@ -412,6 +470,7 @@ const DoctorDashboard = () => {
                         key={appt._id}
                         appointment={appt}
                         onViewSymptoms={fetchSymptoms}
+                        now={now}
                       />
                     ))}
                   </div>

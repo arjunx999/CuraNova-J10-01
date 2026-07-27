@@ -14,7 +14,7 @@ import axios from "../api/axios";
 import { useUser } from "../../context/userContext.jsx";
 import { clearAccessToken } from "../api/tokenStore.js";
 
-const Navbar = () => {
+const Navbar = ({ isDash }) => {
   const [open, setOpen] = useState(false);
 
   const menuRef = useRef(null);
@@ -149,6 +149,13 @@ const Navbar = () => {
         >
           {user.role === "patient" && (
             <button
+              onClick={() => {
+                {
+                  isDash
+                    ? Navigate("/patient/home")
+                    : Navigate(`/patient/${user._id}/dashboard/`);
+                }
+              }}
               className="
             w-full
             flex items-center gap-3
@@ -167,7 +174,7 @@ const Navbar = () => {
               text-gray-700
               "
               >
-                Dashboard
+                {isDash ? "Home" : "Dashboard"}
               </span>
             </button>
           )}
