@@ -33,4 +33,5 @@ const slotSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+slotSchema.index({ doctor: 1, date: 1 });
 export const Slot = mongoose.model("Slot", slotSchema);

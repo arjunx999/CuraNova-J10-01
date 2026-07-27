@@ -62,4 +62,6 @@ const appointmentSchema = mongoose.Schema(
   { timestamps: true },
 );
 
+appointmentSchema.index({ doctor: 1, payment_status: 1, status: 1 });
+appointmentSchema.index({ patient: 1, status: 1, payment_status: 1 });
 export const Appointment = mongoose.model("Appointment", appointmentSchema);
