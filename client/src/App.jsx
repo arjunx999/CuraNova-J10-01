@@ -20,12 +20,7 @@ import PatientDashboard from "./pages/patient/PatientDashboard";
 const PublicRoute = ({ children }) => {
   const { user } = useUser();
   if (user) {
-    return (
-      <Navigate
-        to={user.role === "doctor" ? "/doctor/dashboard" : "/patient/home"}
-        replace
-      />
-    );
+    return <Navigate to={user.role === "doctor" ? "/doctor/dashboard" : "/patient/home"} replace />;
   }
   return children;
 };

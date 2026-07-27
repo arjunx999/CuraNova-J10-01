@@ -1,11 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  LayoutDashboard,
-  LogOut,
-  ChevronDown,
-  UserCircle2,
-  Stethoscope,
-} from "lucide-react";
+import { LayoutDashboard, LogOut, ChevronDown, UserCircle2, Stethoscope } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -51,163 +45,48 @@ const Navbar = ({ isDash }) => {
   };
 
   return (
-    <div
-      className="
-        relative
-        z-50
-        w-full h-[9vh]
-        flex items-center justify-between
-        px-4 sm:px-[4vw] md:px-[3vw]
-      "
-    >
+    <div className="relative z-50 flex h-[9vh] w-full items-center justify-between px-4 sm:px-[4vw] md:px-[3vw]">
       {/* Logo */}
 
-      <div
-        className="
-        w-[40vw]
-        sm:w-[22vw]
-        md:w-[13vw]
-        h-full
-        "
-      >
-        <img
-          src={logo}
-          alt="CuraNova"
-          className="
-          w-full h-full
-          object-contain
-          scale-95
-          "
-        />
+      <div className="h-full w-[40vw] sm:w-[22vw] md:w-[13vw]">
+        <img src={logo} alt="CuraNova" className="h-full w-full scale-95 object-contain" />
       </div>
 
       {/* Profile */}
 
       <div className="relative" ref={menuRef}>
-        <button
-          onClick={() => setOpen(!open)}
-          className="
-          flex items-center gap-2
-          px-3 py-2
-          rounded-full
-          border border-[#9b87f5]
-          bg-[#ede9fe]
-          text-[#7c5ce8]
-          hover:bg-[#e7e1fd]
-          transition-all
-          cursor-pointer
-          "
-        >
-          {user.role === "doctor" ? (
-            <Stethoscope size={18} />
-          ) : (
-            <UserCircle2 size={18} />
-          )}
+        <button onClick={() => setOpen(!open)} className="flex cursor-pointer items-center gap-2 rounded-full border border-[#9b87f5] bg-[#ede9fe] px-3 py-2 text-[#7c5ce8] transition-all hover:bg-[#e7e1fd]">
+          {user.role === "doctor" ? <Stethoscope size={18} /> : <UserCircle2 size={18} />}
 
-          <span
-            className="
-            text-sm
-            font-medium
-            hidden sm:block
-            "
-          >
-            {user.name}
-          </span>
+          <span className="hidden text-sm font-medium sm:block">{user.name}</span>
 
-          <ChevronDown
-            size={16}
-            className={`
-              transition-transform
-              duration-200
-              ${open ? "rotate-180" : ""}
-            `}
-          />
+          <ChevronDown size={16} className={`transition-transform duration-200 ${open ? "rotate-180" : ""} `} />
         </button>
 
         {/* Dropdown */}
 
-        <div
-          className={`
-          absolute right-0 mt-2
-          w-52
-          bg-white
-          rounded-2xl
-          border border-gray-200
-          shadow-xl
-          overflow-hidden
-          origin-top-right
-          transition-all
-          duration-200
-
-          ${
-            open
-              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-              : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
-          }
-
-          `}
-        >
+        <div className={`absolute right-0 mt-2 w-52 origin-top-right overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl transition-all duration-200 ${open ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-2 scale-95 opacity-0"} `}>
           {user.role === "patient" && (
             <button
               onClick={() => {
                 {
-                  isDash
-                    ? Navigate("/patient/home")
-                    : Navigate(`/patient/${user._id}/dashboard/`);
+                  isDash ? Navigate("/patient/home") : Navigate(`/patient/${user._id}/dashboard/`);
                 }
               }}
-              className="
-            w-full
-            flex items-center gap-3
-            px-4 py-3
-            hover:bg-[#f6f3ff]
-            transition-colors
-            cursor-pointer
-            "
+              className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-[#f6f3ff]"
             >
               <LayoutDashboard size={18} className="text-[#7c5ce8]" />
 
-              <span
-                className="
-              text-sm
-              font-medium
-              text-gray-700
-              "
-              >
-                {isDash ? "Home" : "Dashboard"}
-              </span>
+              <span className="text-sm font-medium text-gray-700">{isDash ? "Home" : "Dashboard"}</span>
             </button>
           )}
 
-          <div
-            className="
-            h-px
-            bg-gray-100
-            "
-          />
+          <div className="h-px bg-gray-100" />
 
-          <button
-            onClick={handleLogout}
-            className="
-            w-full
-            flex items-center gap-3
-            px-4 py-3
-            hover:bg-red-50
-            transition-colors
-            cursor-pointer
-            "
-          >
+          <button onClick={handleLogout} className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-red-50">
             <LogOut size={18} className="text-red-500" />
 
-            <span
-              className="
-              text-sm
-              font-medium
-              text-red-500
-              "
-            >
-              Logout
-            </span>
+            <span className="text-sm font-medium text-red-500">Logout</span>
           </button>
         </div>
       </div>

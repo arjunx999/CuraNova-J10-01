@@ -1,17 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  BadgeCheck,
-  Star,
-  MapPin,
-  Clock,
-  Languages,
-  Stethoscope,
-  CalendarDays,
-  Users,
-  Briefcase,
-} from "lucide-react";
+import { ArrowLeft, BadgeCheck, Star, MapPin, Clock, Languages, Stethoscope, CalendarDays, Users, Briefcase } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "../../api/axios";
 import { useRazorpay } from "react-razorpay";
@@ -19,10 +8,7 @@ import Navbar from "../../components/Navbar";
 import { useUser } from "../../../context/userContext";
 
 const formatDate = (date) => {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-    2,
-    "0",
-  )}-${String(date.getDate()).padStart(2, "0")}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 };
 
 const getNextDays = (count = 6) => {
@@ -48,30 +34,19 @@ const formatTime = (time) => {
   return `${h}:${minute.toString().padStart(2, "0")} ${suffix}`;
 };
 
-const isPresent = (value) =>
-  value !== null && value !== undefined && value !== "";
+const isPresent = (value) => value !== null && value !== undefined && value !== "";
 
 const StarRating = ({ rating, size = 12 }) => (
   <div className="flex items-center gap-0.5">
     {[1, 2, 3, 4, 5].map((star) => (
-      <Star
-        key={star}
-        size={size}
-        className={
-          star <= Math.round(rating)
-            ? "text-[#9b87f5] fill-[#9b87f5]"
-            : "text-gray-200 fill-gray-200"
-        }
-      />
+      <Star key={star} size={size} className={star <= Math.round(rating) ? "fill-[#9b87f5] text-[#9b87f5]" : "fill-gray-200 text-gray-200"} />
     ))}
   </div>
 );
 
 const StatBox = ({ value, label, sub }) => (
-  <div className="bg-[#faf9ff] border border-[#ede9fe] rounded-xl p-3.5 text-center flex flex-col items-center gap-1.5">
-    <span className="text-xl font-semibold text-[#7c5ce8] leading-none">
-      {value}
-    </span>
+  <div className="flex flex-col items-center gap-1.5 rounded-xl border border-[#ede9fe] bg-[#faf9ff] p-3.5 text-center">
+    <span className="text-xl leading-none font-semibold text-[#7c5ce8]">{value}</span>
 
     {sub}
 
@@ -80,15 +55,13 @@ const StatBox = ({ value, label, sub }) => (
 );
 
 const InfoRow = ({ icon: Icon, label, value }) => (
-  <div className="flex items-center justify-between py-3 border-b border-gray-50 last:border-b-0">
+  <div className="flex items-center justify-between border-b border-gray-50 py-3 last:border-b-0">
     <div className="flex items-center gap-2 text-gray-400">
       <Icon size={13} />
       <span className="text-xs">{label}</span>
     </div>
 
-    <span className="text-xs font-medium text-gray-700 text-right max-w-[60%]">
-      {value}
-    </span>
+    <span className="max-w-[60%] text-right text-xs font-medium text-gray-700">{value}</span>
   </div>
 );
 
@@ -145,9 +118,7 @@ const DoctorProfile = () => {
   useEffect(() => {
     if (!slots.length) return;
 
-    const firstAvailable = days.find((day) =>
-      slots.some((slot) => slot.formattedDate === day.fullDate),
-    );
+    const firstAvailable = days.find((day) => slots.some((slot) => slot.formattedDate === day.fullDate));
 
     if (firstAvailable) {
       setSelectedDay(firstAvailable.fullDate);
@@ -155,15 +126,11 @@ const DoctorProfile = () => {
   }, [slots, days]);
 
   const slotsForDay = useMemo(() => {
-    return slots
-      .filter((slot) => slot.formattedDate === selectedDay)
-      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+    return slots.filter((slot) => slot.formattedDate === selectedDay).sort((a, b) => a.start_time.localeCompare(b.start_time));
   }, [slots, selectedDay]);
 
   const availableDays = useMemo(() => {
-    return days.filter((day) =>
-      slots.some((slot) => slot.formattedDate === day.fullDate),
-    );
+    return days.filter((day) => slots.some((slot) => slot.formattedDate === day.fullDate));
   }, [days, slots]);
   const initials = useMemo(() => {
     if (!doctor?.name) return "";
@@ -193,17 +160,13 @@ const DoctorProfile = () => {
       },
       {
         key: "fee",
-        value: isPresent(doctor.consultation_fee)
-          ? `₹${doctor.consultation_fee}`
-          : null,
+        value: isPresent(doctor.consultation_fee) ? `₹${doctor.consultation_fee}` : null,
         label: "Consultation fee",
         sub: <span className="text-[10px] text-gray-400">per visit</span>,
       },
       {
         key: "patients",
-        value: isPresent(doctor.patients_count)
-          ? `${doctor.patients_count}+`
-          : null,
+        value: isPresent(doctor.patients_count) ? `${doctor.patients_count}+` : null,
         label: "Patients seen",
         sub: <Users size={14} className="text-[#9b87f5]" />,
       },
@@ -254,27 +217,23 @@ const DoctorProfile = () => {
         key: "patientsSeen",
         icon: Users,
         label: "Patients seen",
-        value: isPresent(doctor.patients_count)
-          ? `${doctor.patients_count}+`
-          : null,
+        value: isPresent(doctor.patients_count) ? `${doctor.patients_count}+` : null,
       },
     ].filter((item) => isPresent(item.value));
   }, [doctor]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f4f0]">
-        <p className="text-gray-400 text-sm">Loading doctor profile...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f4f0]">
+        <p className="text-sm text-gray-400">Loading doctor profile...</p>
       </div>
     );
   }
 
   if (error || !doctor) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f4f0]">
-        <p className="text-gray-400 text-sm">
-          Couldn't load this doctor's profile.
-        </p>
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f4f0]">
+        <p className="text-sm text-gray-400">Couldn't load this doctor's profile.</p>
       </div>
     );
   }
@@ -283,19 +242,14 @@ const DoctorProfile = () => {
     try {
       const slotId = selectedSlot._id;
       const dr_id = selectedSlot.doctor;
-      const res = await axios.post(
-        `/appointment/initiate-appointment/${slotId}`,
-        {
-          dr_id,
-        },
-      );
+      const res = await axios.post(`/appointment/initiate-appointment/${slotId}`, {
+        dr_id,
+      });
       console.log(res);
       initiatePaymentHandler();
     } catch (error) {
       console.log("error initiating appointment", error);
-      toast.error(
-        error.response?.data?.message || "Unable to initiate appointment",
-      );
+      toast.error(error.response?.data?.message || "Unable to initiate appointment");
     }
   };
 
@@ -313,9 +267,7 @@ const DoctorProfile = () => {
       }
     } catch (error) {
       console.log("error initiating payment", error);
-      toast.error(
-        error.response?.data?.message || "Unable to initiate payment",
-      );
+      toast.error(error.response?.data?.message || "Unable to initiate payment");
     }
   };
 
@@ -377,12 +329,9 @@ const DoctorProfile = () => {
         return;
       }
 
-      const res = await axios.post(
-        `/appointment/summarize-symptoms/${appointmentId}`,
-        {
-          patient_text: symptoms,
-        },
-      );
+      const res = await axios.post(`/appointment/summarize-symptoms/${appointmentId}`, {
+        patient_text: symptoms,
+      });
 
       if (res.data.success) {
         toast.success("Symptoms submitted");
@@ -398,63 +347,39 @@ const DoctorProfile = () => {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#f5f4f0] relative flex flex-col">
-      <div className="w-full h-full absolute top-0 left-0 blob1 z-0 opacity-50" />
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#f5f4f0]">
+      <div className="blob1 absolute top-0 left-0 z-0 h-full w-full opacity-50" />
 
-      <div className="w-[50%] h-[50%] absolute top-25 -left-35 blob2 z-0 opacity-40" />
+      <div className="blob2 absolute top-25 -left-35 z-0 h-[50%] w-[50%] opacity-40" />
 
       <Navbar />
 
-      <main className="relative z-10 flex-1 w-full px-6 lg:px-12 py-8">
-        <div className="max-w-[2000px] mx-auto">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 mb-8 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-[#7c5ce8] hover:bg-purple-50 transition-all cursor-pointer"
-          >
+      <main className="relative z-10 w-full flex-1 px-6 py-8 lg:px-12">
+        <div className="mx-auto max-w-[2000px]">
+          <button onClick={() => navigate(-1)} className="mb-8 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-gray-100 bg-white text-[#7c5ce8] shadow-sm transition-all hover:bg-purple-50">
             <ArrowLeft size={18} />
           </button>
 
-          <section className="bg-white rounded-3xl p-5 sm:py-6 sm:pl-6 sm:pr-8shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-6">
-            <div className="flex items-center gap-4 sm:gap-5 min-w-0">
-              <div className="hidden sm:flex w-20 h-20 rounded-2xl bg-[#ede9fe] text-[#7c5ce8] items-center justify-center font-semibold text-2xl overflow-hidden">
-                {doctor?.profilePicture ? (
-                  <img
-                    src={doctor.profilePicture}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span>{initials}</span>
-                )}
+          <section className="sm:pr-8shadow-sm mb-6 flex flex-col gap-5 rounded-3xl border border-gray-100 bg-white p-5 sm:py-6 sm:pl-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+              <div className="hidden h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-[#ede9fe] text-2xl font-semibold text-[#7c5ce8] sm:flex">
+                {doctor?.profilePicture ? <img src={doctor.profilePicture} alt="" className="h-full w-full object-cover" /> : <span>{initials}</span>}
               </div>
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 truncate">
-                    Dr. {doctor.name}
-                  </h1>
+                  <h1 className="truncate text-xl font-semibold text-gray-900 sm:text-2xl">Dr. {doctor.name}</h1>
 
-                  {doctor.isVerified && (
-                    <BadgeCheck
-                      size={18}
-                      className="text-[#9b87f5] fill-[#ede9fe] shrink-0"
-                    />
-                  )}
+                  {doctor.isVerified && <BadgeCheck size={18} className="shrink-0 fill-[#ede9fe] text-[#9b87f5]" />}
                 </div>
 
-                <p className="text-sm text-gray-400 mt-1 truncate">
-                  {doctor.degrees.join(", ")}
-                </p>
+                <p className="mt-1 truncate text-sm text-gray-400">{doctor.degrees.join(", ")}</p>
 
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
-                  {doctor.department && (
-                    <span className="px-3 py-1 rounded-full bg-[#f3edff] text-[#7c5ce8] text-xs">
-                      {doctor.department}
-                    </span>
-                  )}
+                <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
+                  {doctor.department && <span className="rounded-full bg-[#f3edff] px-3 py-1 text-xs text-[#7c5ce8]">{doctor.department}</span>}
 
                   {doctor.hospital_name && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-xs text-gray-400">
                       <MapPin size={12} />
                       {doctor.hospital_name}
                     </span>
@@ -464,10 +389,8 @@ const DoctorProfile = () => {
             </div>
 
             {doctor.consultation_fee != null && (
-              <div className="text-left md:text-right shrink-0">
-                <p className="text-3xl font-semibold">
-                  ₹{doctor.consultation_fee}
-                </p>
+              <div className="shrink-0 text-left md:text-right">
+                <p className="text-3xl font-semibold">₹{doctor.consultation_fee}</p>
 
                 <p className="text-xs text-gray-400">per consult</p>
               </div>
@@ -476,47 +399,33 @@ const DoctorProfile = () => {
 
           <div className="grid grid-cols-12 gap-6">
             {/* LEFT CONTENT */}
-            <div className="col-span-12 lg:col-span-8 space-y-6">
+            <div className="col-span-12 space-y-6 lg:col-span-8">
               {statFields.length > 0 && (
-                <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-sm font-medium text-gray-700 mb-5">
-                    At a glance
-                  </h2>
+                <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                  <h2 className="mb-5 text-sm font-medium text-gray-700">At a glance</h2>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                     {statFields.map((field) => (
-                      <StatBox
-                        key={field.key}
-                        value={field.value}
-                        label={field.label}
-                        sub={field.sub}
-                      />
+                      <StatBox key={field.key} value={field.value} label={field.label} sub={field.sub} />
                     ))}
                   </div>
                 </section>
               )}
 
               {doctor.bio && (
-                <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="font-medium text-gray-800 mb-3">About</h2>
+                <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                  <h2 className="mb-3 font-medium text-gray-800">About</h2>
 
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    {doctor.bio}
-                  </p>
+                  <p className="text-sm leading-relaxed text-gray-500">{doctor.bio}</p>
                 </section>
               )}
 
               {infoFields.length > 0 && (
-                <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="font-medium text-gray-800 mb-3">Details</h2>
+                <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                  <h2 className="mb-3 font-medium text-gray-800">Details</h2>
 
                   {infoFields.map((field) => (
-                    <InfoRow
-                      key={field.key}
-                      icon={field.icon}
-                      label={field.label}
-                      value={field.value}
-                    />
+                    <InfoRow key={field.key} icon={field.icon} label={field.label} value={field.value} />
                   ))}
                 </section>
               )}
@@ -525,22 +434,18 @@ const DoctorProfile = () => {
             {/* BOOKING PANEL */}
 
             <aside className="col-span-12 lg:col-span-4">
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 sticky top-6">
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  Book your Slot
-                </h1>
+              <div className="sticky top-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+                <h1 className="text-2xl font-semibold text-gray-900">Book your Slot</h1>
 
-                <div className="flex items-center gap-2 text-sm mb-4 mt-3 text-gray-600">
+                <div className="mt-3 mb-4 flex items-center gap-2 text-sm text-gray-600">
                   <CalendarDays size={15} className="text-[#9b87f5]" />
                   Select date
                 </div>
 
                 {availableDays.length === 0 ? (
-                  <p className="text-xs text-gray-400 py-4 text-center mb-6">
-                    No upcoming dates with slots.
-                  </p>
+                  <p className="mb-6 py-4 text-center text-xs text-gray-400">No upcoming dates with slots.</p>
                 ) : (
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-6">
+                  <div className="scrollbar-hide mb-6 flex gap-2 overflow-x-auto pb-2">
                     {availableDays.map((day) => {
                       const today = day.fullDate === formatDate(new Date());
 
@@ -553,42 +458,30 @@ const DoctorProfile = () => {
                             setSelectedDay(day.fullDate);
                             setSelectedSlot(null);
                           }}
-                          className={`min-w-[68px] h-[68px] cursor-pointer rounded-xl border flex flex-col items-center justify-center transition-all ${
-                            active
-                              ? "bg-[#7c5ce8] border-[#7c5ce8] text-white shadow-md shadow-purple-200"
-                              : "bg-white border-purple-100 text-gray-500 hover:border-purple-300"
+                          className={`flex h-[68px] min-w-[68px] cursor-pointer flex-col items-center justify-center rounded-xl border transition-all ${
+                            active ? "border-[#7c5ce8] bg-[#7c5ce8] text-white shadow-md shadow-purple-200" : "border-purple-100 bg-white text-gray-500 hover:border-purple-300"
                           }`}
                         >
-                          <span className="text-[10px] opacity-80">
-                            {today ? "Today" : day.label.split(" ")[0]}
-                          </span>
+                          <span className="text-[10px] opacity-80">{today ? "Today" : day.label.split(" ")[0]}</span>
 
-                          <span className="text-sm font-medium">
-                            {day.label.split(" ")[1] ||
-                              new Date(day.fullDate).getDate()}
-                          </span>
+                          <span className="text-sm font-medium">{day.label.split(" ")[1] || new Date(day.fullDate).getDate()}</span>
                         </button>
                       );
                     })}
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
+                <div className="mb-3 flex items-center gap-2 text-sm text-gray-600">
                   <Clock size={14} className="text-[#9b87f5]" />
                   Available slots
                 </div>
 
                 {slotsForDay.length === 0 ? (
-                  <p className="text-xs text-gray-400 py-4 text-center">
-                    No slots available on this day.
-                  </p>
+                  <p className="py-4 text-center text-xs text-gray-400">No slots available on this day.</p>
                 ) : (
                   <div className="grid grid-cols-3 gap-3">
                     {slotsForDay.map((slot) => {
-                      const disabled =
-                        !slot.isAvailable ||
-                        slot.is_booked ||
-                        slot.status === "booked";
+                      const disabled = !slot.isAvailable || slot.is_booked || slot.status === "booked";
 
                       const selected = selectedSlot?._id === slot._id;
 
@@ -599,12 +492,12 @@ const DoctorProfile = () => {
                           onClick={() => setSelectedSlot(slot)}
                           className={`h-[38px] rounded-xl border text-xs transition-all ${
                             !slot.isAvailable
-                              ? "bg-red-50 text-red-400 border-red-200 cursor-not-allowed"
+                              ? "cursor-not-allowed border-red-200 bg-red-50 text-red-400"
                               : disabled
-                                ? "bg-gray-50 text-gray-300 border-gray-100 line-through cursor-not-allowed"
+                                ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 line-through"
                                 : selected
-                                  ? "bg-[#7c5ce8] text-white border-[#7c5ce8]"
-                                  : "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 cursor-pointer"
+                                  ? "border-[#7c5ce8] bg-[#7c5ce8] text-white"
+                                  : "cursor-pointer border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                           }`}
                         >
                           {formatTime(slot.start_time)}
@@ -614,31 +507,25 @@ const DoctorProfile = () => {
                   </div>
                 )}
 
-                <div className="flex items-center gap-5 mt-5 text-[11px] text-gray-400">
+                <div className="mt-5 flex items-center gap-5 text-[11px] text-gray-400">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-purple-100" />
+                    <span className="h-2 w-2 rounded-full bg-purple-100" />
                     Available
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#7c5ce8]" />
+                    <span className="h-2 w-2 rounded-full bg-[#7c5ce8]" />
                     Selected
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-200" />
+                    <span className="h-2 w-2 rounded-full bg-red-200" />
                     Taken
                   </div>
                 </div>
 
-                <button
-                  disabled={!selectedSlot}
-                  onClick={initiateAppointmentHandler}
-                  className="w-full mt-6 py-4 rounded-xl bg-[#7c5ce8] text-white disabled:bg-gray-200 cursor-pointer"
-                >
-                  {selectedSlot
-                    ? `Continue - ${formatTime(selectedSlot.start_time)}`
-                    : "Select a slot to continue"}
+                <button disabled={!selectedSlot} onClick={initiateAppointmentHandler} className="mt-6 w-full cursor-pointer rounded-xl bg-[#7c5ce8] py-4 text-white disabled:bg-gray-200">
+                  {selectedSlot ? `Continue - ${formatTime(selectedSlot.start_time)}` : "Select a slot to continue"}
                 </button>
               </div>
             </aside>
@@ -647,40 +534,21 @@ const DoctorProfile = () => {
       </main>
 
       {showSymptomForm && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white w-full max-w-[560px] rounded-3xl p-8 shadow-xl">
-            <span className="inline-block px-3 py-1 rounded-full bg-[#f3edff] text-[#7c5ce8] text-[11px] font-medium mb-3">
-              AI-powered visit prep
-            </span>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-[560px] rounded-3xl bg-white p-8 shadow-xl">
+            <span className="mb-3 inline-block rounded-full bg-[#f3edff] px-3 py-1 text-[11px] font-medium text-[#7c5ce8]">AI-powered visit prep</span>
 
-            <h2 className="text-2xl font-semibold text-gray-900 leading-tight">
-              Help your doctor walk in prepared
-            </h2>
+            <h2 className="text-2xl leading-tight font-semibold text-gray-900">Help your doctor walk in prepared</h2>
 
-            <p className="text-sm text-gray-400 mt-2 leading-relaxed">
-              Describe what you're experiencing and we'll turn it into a clean
-              clinical summary — so your appointment starts with answers, not
-              small talk.
-            </p>
+            <p className="mt-2 text-sm leading-relaxed text-gray-400">Describe what you're experiencing and we'll turn it into a clean clinical summary — so your appointment starts with answers, not small talk.</p>
 
-            <textarea
-              value={symptoms}
-              onChange={(e) => setSymptoms(e.target.value)}
-              placeholder="Example: Fever since 3 days, headache, body pain, worse at night..."
-              className="w-full h-64 mt-6 rounded-xl border border-gray-200 p-4 text-sm resize-none focus:outline-none focus:border-[#9b87f5]"
-            />
+            <textarea value={symptoms} onChange={(e) => setSymptoms(e.target.value)} placeholder="Example: Fever since 3 days, headache, body pain, worse at night..." className="mt-6 h-64 w-full resize-none rounded-xl border border-gray-200 p-4 text-sm focus:border-[#9b87f5] focus:outline-none" />
 
-            <button
-              onClick={submitSymptoms}
-              className="w-full mt-5 py-3.5 rounded-xl bg-[#7c5ce8] text-white font-medium hover:bg-[#6d4fd8] transition-colors cursor-pointer"
-            >
+            <button onClick={submitSymptoms} className="mt-5 w-full cursor-pointer rounded-xl bg-[#7c5ce8] py-3.5 font-medium text-white transition-colors hover:bg-[#6d4fd8]">
               Generate my summary
             </button>
 
-            <button
-              onClick={skipSymptomsHandler}
-              className="w-full mt-2.5 py-3 rounded-xl text-[#7c5ce8] text-sm font-medium hover:bg-[#faf9ff] transition-colors cursor-pointer"
-            >
+            <button onClick={skipSymptomsHandler} className="mt-2.5 w-full cursor-pointer rounded-xl py-3 text-sm font-medium text-[#7c5ce8] transition-colors hover:bg-[#faf9ff]">
               I'll do this later from my dashboard
             </button>
           </div>

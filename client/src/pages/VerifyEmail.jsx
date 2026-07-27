@@ -15,12 +15,9 @@ const VerifyEmail = () => {
   useEffect(() => {
     const sendToken = async () => {
       try {
-        await axios.post(
-          `http://localhost:7643/auth/verify-email?role=${role}`,
-          {
-            token: rawToken,
-          },
-        );
+        await axios.post(`http://localhost:7643/auth/verify-email?role=${role}`, {
+          token: rawToken,
+        });
         setStatus("success");
         setTimeout(() => Navigate("/auth/login"), 3000);
       } catch (error) {
@@ -33,19 +30,16 @@ const VerifyEmail = () => {
   }, [rawToken]);
 
   return (
-    <div className="min-h-screen w-screen bg-[#f5f4f0] flex items-center justify-center relative overflow-hidden px-4">
+    <div className="relative flex min-h-screen w-screen items-center justify-center overflow-hidden bg-[#f5f4f0] px-4">
       {/* blobs */}
-      <div className="blob1 absolute w-full h-full top-0 left-0 opacity-100 z-0" />
-      <div className="blob2 absolute w-full h-full top-20 right-70 opacity-100 z-0" />
+      <div className="blob1 absolute top-0 left-0 z-0 h-full w-full opacity-100" />
+      <div className="blob2 absolute top-20 right-70 z-0 h-full w-full opacity-100" />
 
-      <div className="relative z-10 bg-white rounded-2xl shadow-lg w-full max-w-md p-10 flex flex-col items-center text-center">
+      <div className="relative z-10 flex w-full max-w-md flex-col items-center rounded-2xl bg-white p-10 text-center shadow-lg">
         {/* Logo */}
-        <div className="flex items-center gap-2 mb-8">
+        <div className="mb-8 flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span
-              className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9b87f5] opacity-75"
-              style={{ animationDuration: "2s" }}
-            />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#9b87f5] opacity-75" style={{ animationDuration: "2s" }} />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-[#9b87f5]" />
           </span>
           <img src={logo} alt="CuraNova" className="h-5 object-contain" />
@@ -54,30 +48,22 @@ const VerifyEmail = () => {
         {/* Loading */}
         {status === "loading" && (
           <>
-            <div className="w-14 h-14 rounded-full border-4 border-[#ede9fe] border-t-[#9b87f5] animate-spin mb-6" />
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">
-              Verifying your email
-            </h2>
-            <p className="text-sm text-gray-400">
-              Just a moment, hang tight...
-            </p>
+            <div className="mb-6 h-14 w-14 animate-spin rounded-full border-4 border-[#ede9fe] border-t-[#9b87f5]" />
+            <h2 className="mb-2 text-lg font-semibold text-gray-800">Verifying your email</h2>
+            <p className="text-sm text-gray-400">Just a moment, hang tight...</p>
           </>
         )}
 
         {/* Success */}
         {status === "success" && (
           <>
-            <div className="w-14 h-14 rounded-full bg-[#ede9fe] flex items-center justify-center mb-6">
+            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#ede9fe]">
               <Check size={26} stroke="#9b87f5" strokeWidth={2.5} />
             </div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">
-              Email verified!
-            </h2>
-            <p className="text-sm text-gray-400 mb-6">
-              Your account is now active. Redirecting you to login...
-            </p>
-            <div className="w-full bg-[#f4f3f1] rounded-full h-1.5 overflow-hidden">
-              <div className="h-full bg-[#9b87f5] rounded-full animate-[progress_3s_linear_forwards]" />
+            <h2 className="mb-2 text-lg font-semibold text-gray-800">Email verified!</h2>
+            <p className="mb-6 text-sm text-gray-400">Your account is now active. Redirecting you to login...</p>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#f4f3f1]">
+              <div className="h-full animate-[progress_3s_linear_forwards] rounded-full bg-[#9b87f5]" />
             </div>
             <style>{`
               @keyframes progress {
@@ -91,19 +77,12 @@ const VerifyEmail = () => {
         {/* Error */}
         {status === "error" && (
           <>
-            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-6">
+            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
               <X size={26} stroke="#ef4444" strokeWidth={2.5} />
             </div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">
-              Verification failed
-            </h2>
-            <p className="text-sm text-gray-400 mb-6">
-              This link may have expired or already been used.
-            </p>
-            <button
-              onClick={() => Navigate("/auth/patient/signup")}
-              className="w-full bg-black text-white py-2.5 rounded-lg hover:bg-[#1a1a1a] transition font-medium text-sm cursor-pointer"
-            >
+            <h2 className="mb-2 text-lg font-semibold text-gray-800">Verification failed</h2>
+            <p className="mb-6 text-sm text-gray-400">This link may have expired or already been used.</p>
+            <button onClick={() => Navigate("/auth/patient/signup")} className="w-full cursor-pointer rounded-lg bg-black py-2.5 text-sm font-medium text-white transition hover:bg-[#1a1a1a]">
               Back to Signup
             </button>
           </>
