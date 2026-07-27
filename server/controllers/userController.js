@@ -15,26 +15,23 @@ export const getUserDashboard = async (req, res) => {
         .json({ success: false, message: "No user found with current id" });
     }
 
-    const now = new Date();
+    const appointments = await Appointment.find({
+      patient: userId,
+      $or: [
+        { status: "completed" },
+        { status: "confirmed", payment_status: "confirmed" },
+      ],
+    })
+      .populate("doctor", "name email")
+      .populate("slot", "date start_time end_time")
+      .lean();
 
-    const [completedAppointments, upcomingAppointments] = await Promise.all([
-      Appointment.find({
-        patient: userId,
-        status: "completed",
-      })
-        .populate("doctor", "name email")
-        .populate("slot", "date start_time end_time")
-        .lean(),
-
-      Appointment.find({
-        patient: userId,
-        status: "confirmed",
-        payment_status: "confirmed",
-      })
-        .populate("doctor", "name email")
-        .populate("slot", "date start_time end_time")
-        .lean(),
-    ]);
+    const completedAppointments = [];
+    const upcomingAppointments = [];
+    for (const appt of appointments) {
+      if (appt.status === "completed") completedAppointments.push(appt);
+      else upcomingAppointments.push(appt);
+    }
 
     return res.status(200).json({
       success: true,

@@ -171,58 +171,44 @@ export const getDoctorDashboard = async (req, res) => {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    const [todaySlotIds, upcomingSlotIds] = await Promise.all([
-      Slot.find({
-        doctor: dr_id,
-        date: { $gte: startOfDay, $lte: endOfDay },
-      }).distinct("_id"),
-
-      Slot.find({
-        doctor: dr_id,
-        date: { $gt: endOfDay },
-      }).distinct("_id"),
-    ]);
-
-    const [
-      totalAppointments,
-      completedAppointments,
-      todayAppointments,
-      upcomingAppointments,
-      slots,
-    ] = await Promise.all([
-      Appointment.countDocuments({
-        doctor: dr_id,
-        payment_status: "confirmed",
-      }),
-
-      Appointment.find({
-        doctor: dr_id,
-        status: "completed",
-      })
-        .populate("patient", "name email")
-        .populate("slot", "date start_time end_time")
-        .lean(),
-
-      Appointment.find({
-        doctor: dr_id,
-        slot: { $in: todaySlotIds },
-        payment_status: "confirmed",
-      })
-        .populate("patient", "name email")
-        .populate("slot", "date start_time end_time")
-        .lean(),
-
-      Appointment.find({
-        doctor: dr_id,
-        slot: { $in: upcomingSlotIds },
-        payment_status: "confirmed",
-      })
-        .populate("patient", "name email")
-        .populate("slot", "date start_time end_time")
-        .lean(),
-
+    const [slots, appointments] = await Promise.all([
       Slot.find({ doctor: dr_id, date: { $gte: startOfDay } }).lean(),
+      
+      Appointment.find({
+        doctor: dr_id,
+          $or: [{ status: "completed" }, { payment_status: "confirmed" }],
+      })
+        .populate("patient", "name email")
+        .populate("slot", "date start_time end_time")
+        .lean(),
     ]);
+
+    const todaySlotIds = new Set();
+    const upcomingSlotIds = new Set();
+    for (const slot of slots) {
+      const id = slot._id.toString();
+      if (slot.date <= endOfDay) todaySlotIds.add(id);
+      else upcomingSlotIds.add(id);
+    }
+
+    const completedAppointments = [];
+    const todayAppointments = [];
+    const upcomingAppointments = [];
+    let totalAppointments = 0;
+ 
+    for (const appt of appointments) {
+      if (appt.status === "completed") {
+        completedAppointments.push(appt);
+      } 
+ 
+      if (appt.payment_status === "confirmed") {
+        totalAppointments++;
+        const slotId = appt.slot?._id?.toString();
+        if (slotId && todaySlotIds.has(slotId)) todayAppointments.push(appt);
+        else if (slotId && upcomingSlotIds.has(slotId))
+          upcomingAppointments.push(appt);
+      }
+    }
 
     return res.status(200).json({
       success: true,
