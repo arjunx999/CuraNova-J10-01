@@ -128,6 +128,9 @@ export const initiateAppointment = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
+    if (req.user.role !== "patient") {
+      return res.status(403).json({ success: false, message: "Only patients can book appointments" });
+    }
     const userId = req.user.id;
     const { slotId } = req.params;
     const { dr_id } = req.body;
@@ -164,6 +167,14 @@ export const initiateAppointment = async (req, res) => {
         success: false,
         message: "slot unavailable or invalid",
       });
+    }
+
+    const slotDay = new Date(slot.date);
+    const [slotHour, slotMinute] = slot.start_time.split(":").map(Number);
+    slotDay.setHours(slotHour, slotMinute, 0, 0);
+    if (slotDay <= new Date()) {
+      await session.abortTransaction();
+      return res.status(400).json({ success: false, message: "Cannot book an appointment in the past" });
     }
 
     const appointment = new Appointment({
@@ -205,6 +216,9 @@ const razorpay = new Razorpay({
 
 export const initiatePayment = async (req, res) => {
   try {
+    if (req.user.role !== "patient") {
+      return res.status(403).json({ success: false, message: "Only patients can initiate payment" });
+    }
     const userId = req.user.id;
     const { slotId } = req.params;
     const { dr_id } = req.body;
@@ -269,6 +283,9 @@ export const initiatePayment = async (req, res) => {
 
 export const verifyPayment = async (req, res) => {
   try {
+    if (req.user.role !== "patient") {
+      return res.status(403).json({ success: false, message: "Only patients can verify payment" });
+    }
     const {
       razorpay_payment_id,
       razorpay_order_id,
@@ -326,6 +343,9 @@ export const verifyPayment = async (req, res) => {
 
 export const symptomSummary = async (req, res) => {
   try {
+    if (req.user.role !== "patient") {
+      return res.status(403).json({ success: false, message: "Only patients can submit symptoms" });
+    }
     const { patient_text } = req.body;
     const userId = req.user.id;
     const { appointmentId } = req.params;

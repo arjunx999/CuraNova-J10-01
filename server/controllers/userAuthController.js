@@ -99,7 +99,13 @@ export const login = async (req, res) => {
 
     await user.save();
 
-    const { password: _, ...userWithoutPassword } = user.toObject();
+    const userWithoutPassword = user.toObject();
+    delete userWithoutPassword.password;
+    delete userWithoutPassword.refreshToken;
+    delete userWithoutPassword.refreshTokenExpire;
+    delete userWithoutPassword.verificationToken;
+    delete userWithoutPassword.tokenExpire;
+    delete userWithoutPassword.expiresAt;
 
     return res
       .status(200)

@@ -7,7 +7,22 @@ import redisClient from "../config/redisClient.js";
 export const createSlot = async (req, res) => {
   try {
     const { date, start_time, end_time } = req.body;
+    if (req.user?.role !== "doctor") {
+      return res.status(403).json({ success: false, message: "Only doctors can create slots" });
+    }
     const dr_id = req.user.id;
+
+    if (
+      typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      typeof start_time !== "string" || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(start_time) ||
+      typeof end_time !== "string" || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(end_time)
+    ) {
+      return res.status(400).json({ success: false, message: "Invalid appointment date or time" });
+    }
+    const parsedDate = new Date(`${date}T00:00:00.000Z`);
+    if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) {
+      return res.status(400).json({ success: false, message: "Invalid appointment date" });
+    }
 
     const doctor = await Doctor.findById(dr_id);
     if (!doctor) {
@@ -18,6 +33,12 @@ export const createSlot = async (req, res) => {
 
     const slot_duration = Number(req.body.slot_duration);
     const break_duration = Number(req.body.break_duration);
+    if (!Number.isInteger(slot_duration) || slot_duration <= 0) {
+      return res.status(400).json({ success: false, message: "Slot duration must be a positive whole number" });
+    }
+    if (!Number.isInteger(break_duration) || break_duration < 0) {
+      return res.status(400).json({ success: false, message: "Break duration must be a non-negative whole number" });
+    }
 
     const startMin = toMinutes(start_time);
     const endMin = toMinutes(end_time);
@@ -27,6 +48,17 @@ export const createSlot = async (req, res) => {
         success: false,
         message: "Invalid time for slot creation",
       });
+    }
+
+    const [year, month, day] = date.split("-").map(Number);
+    const [hour, minute] = start_time.split(":").map(Number);
+    if (new Date(year, month - 1, day, hour, minute) < new Date()) {
+      return res.status(400).json({ success: false, message: "Appointment time must be in the future" });
+    }
+
+    const step = slot_duration + break_duration;
+    if (!Number.isFinite(step) || step <= 0 || endMin - startMin > 1440) {
+      return res.status(400).json({ success: false, message: "Invalid slot range or duration" });
     }
 
     const existingSlots = await Slot.findOne({
@@ -48,7 +80,7 @@ export const createSlot = async (req, res) => {
     for (
       let current = startMin;
       current + slot_duration <= endMin;
-      current += slot_duration + break_duration
+      current += step
     ) {
       const slotStart = current;
       const slotEnd = current + slot_duration;
@@ -156,9 +188,14 @@ export const getDoctorByDepartment = async (req, res) => {
 
 export const getDoctorDashboard = async (req, res) => {
   try {
+    if (req.user?.role !== "doctor") {
+      return res.status(403).json({ success: false, message: "Only doctors can view this dashboard" });
+    }
     const dr_id = req.user.id;
 
-    const doctor = await Doctor.findById(dr_id).lean();
+    const doctor = await Doctor.findById(dr_id)
+      .select("-password -refreshToken -refreshTokenExpire -verificationToken -tokenExpire -expiresAt")
+      .lean();
     if (!doctor) {
       return res
         .status(401)

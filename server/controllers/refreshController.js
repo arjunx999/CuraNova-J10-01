@@ -13,6 +13,9 @@ export const refresh = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Missing credentials" });
     }
+    if (!["doctor", "patient"].includes(role)) {
+      return res.status(401).json({ success: false, message: "Invalid session role" });
+    }
 
     let token;
     let newRefreshToken;
@@ -41,8 +44,13 @@ export const refresh = async (req, res) => {
       dr.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await dr.save();
 
-      const { password: _p, ...drData } = dr.toObject();
-      userData = drData;
+      userData = dr.toObject();
+      delete userData.password;
+      delete userData.refreshToken;
+      delete userData.refreshTokenExpire;
+      delete userData.verificationToken;
+      delete userData.tokenExpire;
+      delete userData.expiresAt;
     } else {
       const user = await User.findOne({ refreshToken });
       if (!user) {
@@ -68,8 +76,13 @@ export const refresh = async (req, res) => {
       user.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await user.save();
 
-      const { password: _p, ...patientData } = user.toObject();
-      userData = patientData;
+      userData = user.toObject();
+      delete userData.password;
+      delete userData.refreshToken;
+      delete userData.refreshTokenExpire;
+      delete userData.verificationToken;
+      delete userData.tokenExpire;
+      delete userData.expiresAt;
     }
 
     return res
