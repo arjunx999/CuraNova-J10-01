@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import { CalendarDays, CheckCircle, Stethoscope, FileText, BadgeCheck, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { CalendarDays, CheckCircle, Stethoscope, FileText, BadgeCheck, Sparkles, Star } from "lucide-react";
 import toast from "react-hot-toast";
 import Navbar from "../../components/Navbar";
 import axios from "../../api/axios";
 import VideoCall from "../../components/VideoCall";
+import { socket } from "../../socket";
 
 const StatCard = ({ icon: Icon, value, label }) => {
   return (
@@ -64,7 +65,7 @@ const isSlotLive = (slot, now) => {
 
 const SkeletonBlock = ({ className = "" }) => <div className={`animate-pulse rounded-xl bg-[#ede9fe] ${className}`} />;
 
-const AppointmentCard = ({ appointment, onViewSymptoms, now, onSubmitSymptoms, onStartCall }) => {
+const AppointmentCard = ({ appointment, onViewSymptoms, now, onSubmitSymptoms, onStartCall, onRate }) => {
   const live = isSlotLive(appointment.slot, now);
 
   return (
@@ -101,12 +102,18 @@ const AppointmentCard = ({ appointment, onViewSymptoms, now, onSubmitSymptoms, o
         )}
 
         {live && appointment.status === "confirmed" && appointment.payment_status === "confirmed" && (
-          <button
-            onClick={() => onStartCall(appointment)}
-            className="w-full cursor-pointer rounded-xl bg-red-500 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-red-600 sm:w-auto"
-          >
+          <button onClick={() => onStartCall(appointment)} className="w-full cursor-pointer rounded-xl bg-red-500 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-red-600 sm:w-auto">
             Start
           </button>
+        )}
+        {appointment.status === "completed" && (
+          <div onClick={() => onRate(appointment)} className="flex cursor-pointer items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs">
+            <span className="flex items-center gap-1 text-amber-600">
+              <Star size={13} className="cursor-pointer fill-amber-400 text-amber-400" />
+              {appointment.doctor?.rating ?? 0} ({appointment.doctor?.rating_count ?? 0})
+            </span>
+            {appointment.rating != null ? <span className="text-gray-500">Your rating: {appointment.rating}/5</span> : appointment.payment_status === "confirmed" ? <button className="font-semibold text-[#7c5ce8] hover:underline">Rate doctor</button> : null}
+          </div>
         )}
       </div>
     </div>
@@ -150,6 +157,9 @@ const PatientDashboard = () => {
   const [symptoms, setSymptoms] = useState("");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [activeCall, setActiveCall] = useState(null);
+  const [ratingAppointment, setRatingAppointment] = useState(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30000);
@@ -172,9 +182,9 @@ const PatientDashboard = () => {
     setViewSymptomSection(true);
   };
 
-  const getUserDashboard = async () => {
+  const getUserDashboard = useCallback(async ({ quiet = false } = {}) => {
     try {
-      setIsLoading(true);
+      if (!quiet) setIsLoading(true);
 
       const res = await axios.get("/patient/dashboard");
       //   console.log(res);
@@ -186,13 +196,35 @@ const PatientDashboard = () => {
     } catch (error) {
       console.log(error);
     } finally {
-      setIsLoading(false);
+      if (!quiet) setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     getUserDashboard();
-  }, []);
+  }, [getUserDashboard]);
+
+  useEffect(() => {
+    const handleAppointmentFinished = ({ message } = {}) => {
+      toast.success(message || "Appointment finished. Please rate your consultation from your dashboard.");
+      getUserDashboard({ quiet: true });
+    };
+
+    socket.on("appointment-finished", handleAppointmentFinished);
+    if (!socket.connected) socket.connect();
+
+    return () => socket.off("appointment-finished", handleAppointmentFinished);
+  }, [getUserDashboard]);
+
+  useEffect(() => {
+    const refreshDashboard = () => getUserDashboard({ quiet: true });
+    const interval = setInterval(refreshDashboard, 60000);
+    window.addEventListener("focus", refreshDashboard);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", refreshDashboard);
+    };
+  }, [getUserDashboard]);
 
   const submitSymptoms = async () => {
     try {
@@ -223,6 +255,30 @@ const PatientDashboard = () => {
   const openSymptomForm = (appointmentId) => {
     setSelectedAppointmentId(appointmentId);
     setShowSymptomForm(true);
+  };
+
+  const openRatingForm = (appointment) => {
+    setRatingAppointment(appointment);
+    setRatingValue(appointment.rating || 0);
+  };
+
+  const submitRating = async () => {
+    if (!ratingAppointment || !ratingValue) {
+      toast.error("Choose a rating from 1 to 5 stars.");
+      return;
+    }
+
+    setRatingSubmitting(true);
+    try {
+      await axios.post(`/appointment/rate/${ratingAppointment._id}`, { rating: ratingValue });
+      toast.success("Thank you for rating your consultation.");
+      setRatingAppointment(null);
+      await getUserDashboard();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to submit your rating.");
+    } finally {
+      setRatingSubmitting(false);
+    }
   };
 
   const initials = patient?.name
@@ -334,7 +390,7 @@ const PatientDashboard = () => {
               {isLoading ? (
                 Array.from({ length: 2 }).map((_, i) => <SkeletonBlock key={i} className="h-20 w-full rounded-2xl" />)
               ) : activeAppointments.length ? (
-                activeAppointments.map((appt) => <AppointmentCard key={appt._id} appointment={appt} onViewSymptoms={fetchSymptoms} now={now} onSubmitSymptoms={openSymptomForm} onStartCall={setActiveCall} />)
+                activeAppointments.map((appt) => <AppointmentCard key={appt._id} appointment={appt} onViewSymptoms={fetchSymptoms} now={now} onSubmitSymptoms={openSymptomForm} onStartCall={setActiveCall} onRate={openRatingForm} />)
               ) : (
                 <div className="flex h-[200px] items-center justify-center text-sm text-gray-400">No {activeTab.toLowerCase()} appointments</div>
               )}
@@ -430,12 +486,38 @@ const PatientDashboard = () => {
         </div>
       )}
 
+      {ratingAppointment && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900">Rate your consultation</h2>
+            <p className="mt-1 text-sm text-gray-500">How was your appointment with {ratingAppointment.doctor?.name || "your doctor"}?</p>
+            <div className="my-6 flex justify-center gap-2" role="group" aria-label="Choose a rating from 1 to 5 stars">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button key={value} onClick={() => setRatingValue(value)} aria-label={`${value} star${value > 1 ? "s" : ""}`}>
+                  <Star size={30} className={value <= ratingValue ? "fill-amber-400 text-amber-400" : "text-gray-300"} />
+                </button>
+              ))}
+            </div>
+            <button onClick={submitRating} disabled={ratingSubmitting || !ratingValue} className="w-full cursor-pointer rounded-xl bg-[#7c5ce8] py-3 text-sm font-semibold text-white disabled:opacity-50">
+              {ratingSubmitting ? "Submitting…" : "Submit rating"}
+            </button>
+            <button onClick={() => setRatingAppointment(null)} disabled={ratingSubmitting} className="mt-2 w-full rounded-xl py-3 text-sm text-gray-500 hover:bg-gray-50">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {activeCall && (
         <VideoCall
           appointmentId={activeCall._id}
           role="patient"
           participantName={activeCall.doctor?.name}
-          onClose={() => setActiveCall(null)}
+          onClose={() => {
+            setActiveCall(null);
+            getUserDashboard();
+          }}
+          onCallEnded={getUserDashboard}
         />
       )}
     </div>

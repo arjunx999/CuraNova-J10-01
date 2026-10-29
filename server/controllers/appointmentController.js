@@ -7,6 +7,122 @@ import { sendConfirmation } from "../services/emailConfirmation.js";
 import { summarizeSymptoms } from "../services/symptomSum.js";
 import { appointmentQueue } from "../queues/appointmentQueue.js";
 import mongoose from "mongoose";
+import redisClient from "../config/redisClient.js";
+
+export const completeAppointment = async (req, res) => {
+  try {
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({ success: false, message: "Only the assigned doctor can complete this appointment" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(req.params.appointmentId)) {
+      return res.status(400).json({ success: false, message: "Invalid appointment ID" });
+    }
+
+    const appointment = await Appointment.findOne({
+      _id: req.params.appointmentId,
+      doctor: req.user.id,
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: "Appointment not found" });
+    }
+    if (appointment.status === "completed") {
+      return res.status(200).json({ success: true, appointmentId: appointment._id, status: appointment.status });
+    }
+    if (appointment.status !== "confirmed" || appointment.payment_status !== "confirmed") {
+      return res.status(409).json({ success: false, message: "Only a confirmed, paid appointment can be completed" });
+    }
+
+    appointment.status = "completed";
+    appointment.completedAt = new Date();
+    await appointment.save();
+
+    const io = req.app.get("io");
+    if (io && appointment.patient) {
+      io.to(`user_patient_${appointment.patient}`).emit("appointment-finished", {
+        appointmentId: String(appointment._id),
+        message: "Appointment finished. Please rate your consultation from your dashboard.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      appointmentId: appointment._id,
+      status: appointment.status,
+      completedAt: appointment.completedAt,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const submitAppointmentRating = async (req, res) => {
+  const rating = req.body?.rating;
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return res.status(400).json({ success: false, message: "Rating must be a whole number from 1 to 5" });
+  }
+  if (req.user.role !== "patient") {
+    return res.status(403).json({ success: false, message: "Only the patient can rate this appointment" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(req.params.appointmentId)) {
+    return res.status(400).json({ success: false, message: "Invalid appointment ID" });
+  }
+
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const appointment = await Appointment.findOne({
+      _id: req.params.appointmentId,
+      patient: req.user.id,
+      status: "completed",
+      payment_status: "confirmed",
+    }).session(session);
+
+    if (!appointment) {
+      await session.abortTransaction();
+      return res.status(404).json({ success: false, message: "Completed appointment not found" });
+    }
+    if (appointment.rating != null) {
+      await session.abortTransaction();
+      return res.status(409).json({ success: false, message: "This appointment has already been rated" });
+    }
+
+    const doctor = await Doctor.findById(appointment.doctor).session(session);
+    if (!doctor) {
+      await session.abortTransaction();
+      return res.status(404).json({ success: false, message: "Assigned doctor not found" });
+    }
+
+    const priorCount = doctor.rating_count || 0;
+    const priorRating = doctor.rating || 0;
+    appointment.rating = rating;
+    appointment.ratedAt = new Date();
+    doctor.rating = Number(((priorRating * priorCount + rating) / (priorCount + 1)).toFixed(2));
+    doctor.rating_count = priorCount + 1;
+
+    await appointment.save({ session });
+    await doctor.save({ session });
+    await session.commitTransaction();
+
+    await Promise.allSettled([
+      redisClient.del("all_doctors"),
+      redisClient.del(`doctor:${doctor._id}`),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      rating: appointment.rating,
+      ratedAt: appointment.ratedAt,
+      doctor: { rating: doctor.rating, rating_count: doctor.rating_count },
+    });
+  } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    return res.status(500).json({ success: false, message: error.message });
+  } finally {
+    await session.endSession();
+  }
+};
 
 export const initiateAppointment = async (req, res) => {
   const session = await mongoose.startSession();

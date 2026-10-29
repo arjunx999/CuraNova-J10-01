@@ -18,6 +18,20 @@ const appointmentSchema = mongoose.Schema(
       default: "pending",
       required: true,
     },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: null,
+    },
+    ratedAt: {
+      type: Date,
+      default: null,
+    },
     payment_status: {
       type: String,
       enum: ["na", "pending", "confirmed"],

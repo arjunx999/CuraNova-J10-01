@@ -35,6 +35,7 @@ const io = new Server(expressServer, {
     credentials: true,
   },
 });
+app.set("io", io);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -117,6 +118,8 @@ const sendConsultationError = (socket, ack, code, message) => {
 
 io.on("connection", (socket) => {
   console.log("new user connected", socket.id);
+  // Socket authentication middleware has verified this identity before connection.
+  socket.join(`user_${socket.user.role}_${socket.user.id}`);
 
   const joinedConsultations = new Set();
 

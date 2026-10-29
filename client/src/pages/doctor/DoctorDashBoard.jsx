@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CalendarDays, CheckCircle, Users, Wallet, Star, BadgeCheck, Sparkles } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import axios from "../../api/axios";
@@ -79,6 +79,12 @@ const AppointmentCard = ({ appointment, onViewSymptoms, now, onStartCall }) => {
         <p className="mt-1 text-xs text-gray-400">
           {date} · {time}
         </p>
+        {appointment.status === "completed" && appointment.rating != null && (
+          <p className="mt-2 flex items-center gap-1 text-xs text-amber-700">
+            <Star size={13} className="fill-amber-400 text-amber-400" />
+            Patient rating: {appointment.rating}/5
+          </p>
+        )}
       </div>
 
       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -171,9 +177,9 @@ const DoctorDashboard = () => {
     setViewSymptomSection(true);
   };
 
-  const fetchDoctor = async () => {
+  const fetchDoctor = useCallback(async ({ quiet = false } = {}) => {
     try {
-      setIsLoading(true);
+      if (!quiet) setIsLoading(true);
       const res = await axios.get(`/doctor/dashboard`);
       const { doctor, appointment_data, totalEarnings } = res.data;
 
@@ -186,14 +192,33 @@ const DoctorDashboard = () => {
     } catch (error) {
       console.log(error);
     } finally {
-      setIsLoading(false);
+      if (!quiet) setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!user?._id) return;
     fetchDoctor();
-  }, [user]);
+  }, [user?._id, fetchDoctor]);
+
+  useEffect(() => {
+    if (!user?._id) return;
+    const refreshDashboard = () => fetchDoctor({ quiet: true });
+    const interval = setInterval(refreshDashboard, 60000);
+    window.addEventListener("focus", refreshDashboard);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", refreshDashboard);
+    };
+  }, [user?._id, fetchDoctor]);
+
+  const completeAppointment = async (appointmentId) => {
+    const response = await axios.post(`/appointment/complete/${appointmentId}`);
+    if (!response.data?.success) {
+      throw new Error(response.data?.message || "Unable to complete appointment.");
+    }
+    await fetchDoctor();
+  };
 
   const initials = doctor?.name
     ?.replace("Dr. ", "")
@@ -268,7 +293,7 @@ const DoctorDashboard = () => {
                     <span className="flex items-center gap-1 text-xs text-gray-400">
                       <Star size={12} className="fill-[#9b87f5] text-[#9b87f5]" />
 
-                      {doctor?.rating || 0}
+                      {doctor?.rating || 0} <span className="ml-1">({doctor?.rating_count || 0} ratings)</span>
                     </span>
                   </div>
                 </div>
@@ -420,6 +445,7 @@ const DoctorDashboard = () => {
           role="doctor"
           participantName={activeCall.patient?.name}
           onClose={() => setActiveCall(null)}
+          onComplete={completeAppointment}
         />
       )}
     </div>

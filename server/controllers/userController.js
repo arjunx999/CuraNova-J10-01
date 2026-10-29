@@ -22,7 +22,7 @@ export const getUserDashboard = async (req, res) => {
         { status: "confirmed", payment_status: "confirmed" },
       ],
     })
-      .populate("doctor", "name email")
+      .populate("doctor", "name email rating rating_count")
       .populate("slot", "date start_time end_time")
       .lean();
 

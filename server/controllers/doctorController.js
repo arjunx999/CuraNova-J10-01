@@ -199,14 +199,16 @@ export const getDoctorDashboard = async (req, res) => {
     for (const appt of appointments) {
       if (appt.status === "completed") {
         completedAppointments.push(appt);
-      } 
- 
+      }
+
       if (appt.payment_status === "confirmed") {
         totalAppointments++;
         const slotId = appt.slot?._id?.toString();
-        if (slotId && todaySlotIds.has(slotId)) todayAppointments.push(appt);
-        else if (slotId && upcomingSlotIds.has(slotId))
-          upcomingAppointments.push(appt);
+        if (appt.status !== "completed") {
+          if (slotId && todaySlotIds.has(slotId)) todayAppointments.push(appt);
+          else if (slotId && upcomingSlotIds.has(slotId))
+            upcomingAppointments.push(appt);
+        }
       }
     }
 

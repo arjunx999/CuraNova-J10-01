@@ -1,10 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, CameraOff, Mic, MicOff, PhoneOff } from "lucide-react";
 import useVideoCall from "../hooks/useVideoCall";
 
-const VideoCall = ({ appointmentId, role, participantName, onClose }) => {
+const VideoCall = ({ appointmentId, role, participantName, onClose, onCallEnded, onComplete }) => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const onCallEndedRef = useRef(onCallEnded);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completionError, setCompletionError] = useState("");
   const {
     localStream,
     remoteStream,
@@ -18,6 +21,8 @@ const VideoCall = ({ appointmentId, role, participantName, onClose }) => {
     toggleCamera,
   } = useVideoCall({ appointmentId, role });
 
+  onCallEndedRef.current = onCallEnded;
+
   useEffect(() => {
     if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
   }, [localStream]);
@@ -30,9 +35,26 @@ const VideoCall = ({ appointmentId, role, participantName, onClose }) => {
     start();
   }, [start]);
 
+  useEffect(() => {
+    if (status === "The other participant left") onCallEndedRef.current?.();
+  }, [status]);
+
   const closeCall = () => {
     hangUp();
     onClose?.();
+  };
+
+  const completeCall = async () => {
+    if (!onComplete || isCompleting) return;
+    setIsCompleting(true);
+    setCompletionError("");
+    try {
+      await onComplete(appointmentId);
+      closeCall();
+    } catch (completeError) {
+      setCompletionError(completeError.response?.data?.message || completeError.message || "Unable to complete this appointment.");
+      setIsCompleting(false);
+    }
   };
 
   return (
@@ -46,8 +68,8 @@ const VideoCall = ({ appointmentId, role, participantName, onClose }) => {
         <header className="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-4">
           <div className="min-w-0">
             <h2 className="truncate text-base font-semibold">Consultation with {participantName || "participant"}</h2>
-            <p className={`mt-1 text-xs ${error ? "text-red-300" : "text-zinc-400"}`} aria-live="polite">
-              {error || status}
+            <p className={`mt-1 text-xs ${error || completionError ? "text-red-300" : "text-zinc-400"}`} aria-live="polite">
+              {completionError || error || status}
             </p>
           </div>
           <button onClick={closeCall} className="rounded-full px-3 py-2 text-sm text-zinc-300 hover:bg-white/10" aria-label="Close consultation">
@@ -80,6 +102,16 @@ const VideoCall = ({ appointmentId, role, participantName, onClose }) => {
         </div>
 
         <footer className="flex items-center justify-center gap-3 border-t border-white/10 px-5 py-4">
+          {role === "doctor" && onComplete && (
+            <button
+              onClick={completeCall}
+              disabled={isCompleting || status !== "Connected"}
+              className="rounded-full bg-emerald-700 px-4 py-3 text-xs font-semibold hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-50"
+              title={status !== "Connected" ? "Complete the call connection before ending the appointment" : "Complete appointment"}
+            >
+              {isCompleting ? "Completing…" : "Complete appointment"}
+            </button>
+          )}
           <button
             onClick={toggleMicrophone}
             disabled={!localStream}
