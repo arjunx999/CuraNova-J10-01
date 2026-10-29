@@ -19,6 +19,7 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Appointment } from "./models/Appointment.js";
+import { razorpayWebhook } from "./controllers/razorpayWebhookController.js";
 
 dotenv.config();
 
@@ -36,6 +37,12 @@ const io = new Server(expressServer, {
   },
 });
 app.set("io", io);
+
+app.post(
+  "/webhooks/razorpay",
+  express.raw({ type: "application/json" }),
+  razorpayWebhook,
+);
 
 app.use(express.json());
 app.use(cookieParser());

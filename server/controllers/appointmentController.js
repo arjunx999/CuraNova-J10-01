@@ -266,6 +266,9 @@ export const initiatePayment = async (req, res) => {
 
     const order = await razorpay.orders.create(options);
 
+    appointment.razorpayOrderId = order.id;
+    await appointment.save();
+
     return res.status(200).json({
       success: true,
       order,
@@ -311,6 +314,7 @@ export const verifyPayment = async (req, res) => {
     const appointment = await Appointment.findOne({
       _id: appointmentId,
       patient: userId,
+      razorpayOrderId: razorpay_order_id,
     });
 
     if (!appointment) {

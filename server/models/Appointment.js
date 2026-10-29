@@ -34,9 +34,18 @@ const appointmentSchema = mongoose.Schema(
     },
     payment_status: {
       type: String,
-      enum: ["na", "pending", "confirmed"],
+      enum: ["na", "pending", "confirmed", "failed"],
       default: "na",
       required: true,
+    },
+    razorpayOrderId: {
+      type: String,
+      default: null,
+      index: true,
+    },
+    processedRazorpayWebhookEventIds: {
+      type: [String],
+      default: [],
     },
     slot: {
       type: mongoose.Schema.Types.ObjectId,

@@ -9,7 +9,7 @@ cron.schedule("*/5 * * * *", async () => {
     const now = new Date();
 
     const expiredAppointments = await Appointment.find({
-      payment_status: "pending",
+      payment_status: { $in: ["pending", "failed"] },
       expiresAt: { $lt: now },
     });
 
