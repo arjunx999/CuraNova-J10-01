@@ -6,6 +6,7 @@ import axios from "../api/axios.js";
 import { setAccessToken } from "../api/tokenStore.js";
 import { useUser } from "../../context/userContext.jsx";
 import toast from "react-hot-toast";
+import { socket } from "../socket.js";
 
 const inputCls = "w-full px-3 py-2 text-sm rounded-lg bg-[#f8f8f8] border border-[#e6e6e6] focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition";
 
@@ -83,6 +84,7 @@ const FormPanel = ({ isDoctor, onNavigate }) => {
           password: loginInfo.password,
         });
         setAccessToken(res.data.token);
+        socket.connect();
         const { _id, name, email, profilePicture } = res.data.user;
         setUser({ _id, name, email, profilePicture, role: "patient" });
         toast.success(`Welcome back, ${name}!`, { duration: 1500 });
@@ -93,6 +95,7 @@ const FormPanel = ({ isDoctor, onNavigate }) => {
           password: loginInfo.password,
         });
         setAccessToken(res.data.token);
+        socket.connect();
         const { _id, name, email, profilePicture } = res.data.dr;
         setUser({ _id, name, email, profilePicture, role: "doctor" });
         toast.success(`Welcome back, Dr. ${name}!`, { duration: 1500 });

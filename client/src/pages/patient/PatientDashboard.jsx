@@ -3,6 +3,7 @@ import { CalendarDays, CheckCircle, Stethoscope, FileText, BadgeCheck, Sparkles 
 import toast from "react-hot-toast";
 import Navbar from "../../components/Navbar";
 import axios from "../../api/axios";
+import VideoCall from "../../components/VideoCall";
 
 const StatCard = ({ icon: Icon, value, label }) => {
   return (
@@ -63,7 +64,7 @@ const isSlotLive = (slot, now) => {
 
 const SkeletonBlock = ({ className = "" }) => <div className={`animate-pulse rounded-xl bg-[#ede9fe] ${className}`} />;
 
-const AppointmentCard = ({ appointment, onViewSymptoms, now, onSubmitSymptoms }) => {
+const AppointmentCard = ({ appointment, onViewSymptoms, now, onSubmitSymptoms, onStartCall }) => {
   const live = isSlotLive(appointment.slot, now);
 
   return (
@@ -99,7 +100,14 @@ const AppointmentCard = ({ appointment, onViewSymptoms, now, onSubmitSymptoms })
           </>
         )}
 
-        <button className={`w-full cursor-pointer rounded-xl px-5 py-2.5 text-xs font-semibold transition sm:w-auto ${live ? "blink-live bg-red-500 text-white hover:bg-red-600" : "bg-[#7c5ce8] text-white hover:bg-[#6d4bd8]"} `}>Start</button>
+        {live && appointment.status === "confirmed" && appointment.payment_status === "confirmed" && (
+          <button
+            onClick={() => onStartCall(appointment)}
+            className="w-full cursor-pointer rounded-xl bg-red-500 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-red-600 sm:w-auto"
+          >
+            Start
+          </button>
+        )}
       </div>
     </div>
   );
@@ -141,6 +149,7 @@ const PatientDashboard = () => {
   const [showSymptomForm, setShowSymptomForm] = useState(false);
   const [symptoms, setSymptoms] = useState("");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
+  const [activeCall, setActiveCall] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30000);
@@ -325,7 +334,7 @@ const PatientDashboard = () => {
               {isLoading ? (
                 Array.from({ length: 2 }).map((_, i) => <SkeletonBlock key={i} className="h-20 w-full rounded-2xl" />)
               ) : activeAppointments.length ? (
-                activeAppointments.map((appt) => <AppointmentCard key={appt._id} appointment={appt} onViewSymptoms={fetchSymptoms} now={now} onSubmitSymptoms={openSymptomForm} />)
+                activeAppointments.map((appt) => <AppointmentCard key={appt._id} appointment={appt} onViewSymptoms={fetchSymptoms} now={now} onSubmitSymptoms={openSymptomForm} onStartCall={setActiveCall} />)
               ) : (
                 <div className="flex h-[200px] items-center justify-center text-sm text-gray-400">No {activeTab.toLowerCase()} appointments</div>
               )}
@@ -419,6 +428,15 @@ const PatientDashboard = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {activeCall && (
+        <VideoCall
+          appointmentId={activeCall._id}
+          role="patient"
+          participantName={activeCall.doctor?.name}
+          onClose={() => setActiveCall(null)}
+        />
       )}
     </div>
   );

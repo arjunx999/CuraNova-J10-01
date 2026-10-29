@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 import logo from "../assets/logo.png";
 import { Check, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -15,7 +15,7 @@ const VerifyEmail = () => {
   useEffect(() => {
     const sendToken = async () => {
       try {
-        await axios.post(`http://localhost:7643/auth/verify-email?role=${role}`, {
+        await api.post(`/auth/verify-email?role=${role}`, {
           token: rawToken,
         });
         setStatus("success");

@@ -210,6 +210,14 @@ export const getDoctorDashboard = async (req, res) => {
       }
     }
 
+    upcomingAppointments.sort((a, b) => {
+      const dateDifference =
+        new Date(b.slot?.date || 0).getTime() -
+        new Date(a.slot?.date || 0).getTime();
+      if (dateDifference !== 0) return dateDifference;
+      return (b.slot?.start_time || "").localeCompare(a.slot?.start_time || "");
+    });
+
     return res.status(200).json({
       success: true,
       appointment_data: {

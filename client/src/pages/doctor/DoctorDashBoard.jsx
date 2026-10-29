@@ -6,6 +6,7 @@ import EditProfileModal from "../../components/doctor/EditProfileModal";
 import AvailabilityCard from "../../components/doctor/AvailabilityCard";
 import { useUser } from "../../../context/userContext";
 import DoctorAvailabilityCalendar from "../../components/doctor/DoctorAvailabilityCalendar";
+import VideoCall from "../../components/VideoCall";
 
 const StatCard = ({ icon: Icon, value, label }) => {
   return (
@@ -59,7 +60,7 @@ const isSlotLive = (slot, now) => {
   return now >= start && now <= end;
 };
 
-const AppointmentCard = ({ appointment, onViewSymptoms, now }) => {
+const AppointmentCard = ({ appointment, onViewSymptoms, now, onStartCall }) => {
   const patientName = appointment?.patient?.name || "Patient";
 
   const time = formatTime(appointment?.slot?.start_time);
@@ -91,7 +92,14 @@ const AppointmentCard = ({ appointment, onViewSymptoms, now }) => {
           <span className="bg-gradient-to-r from-[#7c5ce8] via-[#9b87f5] to-[#c084fc] bg-clip-text font-semibold text-transparent">AI Summary</span>
         </button>
 
-        <button className={`w-full cursor-pointer rounded-xl px-5 py-2.5 text-xs font-semibold transition sm:w-auto ${live ? "blink-live bg-red-500 text-white hover:bg-red-600" : "bg-[#7c5ce8] text-white hover:bg-[#6d4bd8]"} `}>Start</button>
+        {live && appointment.status === "confirmed" && appointment.payment_status === "confirmed" && (
+          <button
+            onClick={() => onStartCall(appointment)}
+            className="w-full cursor-pointer rounded-xl bg-red-500 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-red-600 sm:w-auto"
+          >
+            Start
+          </button>
+        )}
       </div>
     </div>
   );
@@ -140,6 +148,7 @@ const DoctorDashboard = () => {
   const [symptomData, setSymptomData] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const [now, setNow] = useState(new Date());
+  const [activeCall, setActiveCall] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30000);
@@ -336,7 +345,7 @@ const DoctorDashboard = () => {
                 ) : activeAppointments.length > 0 ? (
                   <div className="space-y-3">
                     {activeAppointments.map((appt) => (
-                      <AppointmentCard key={appt._id} appointment={appt} onViewSymptoms={fetchSymptoms} now={now} />
+                      <AppointmentCard key={appt._id} appointment={appt} onViewSymptoms={fetchSymptoms} now={now} onStartCall={setActiveCall} />
                     ))}
                   </div>
                 ) : (
@@ -403,6 +412,15 @@ const DoctorDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {activeCall && (
+        <VideoCall
+          appointmentId={activeCall._id}
+          role="doctor"
+          participantName={activeCall.patient?.name}
+          onClose={() => setActiveCall(null)}
+        />
       )}
     </div>
   );
