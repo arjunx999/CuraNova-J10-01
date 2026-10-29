@@ -12,7 +12,22 @@ const AvailabilityCard = ({ onSlotCreated }) => {
     break_duration: 0,
   });
 
-  const today = new Date().toISOString().split("T")[0];
+  const getLocalDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const today = getLocalDate(new Date());
+
+  const getEarliestTime = () => {
+    if (formData.date !== today) return "00:00";
+    const now = new Date();
+    const minute = Math.ceil(now.getMinutes() / 5) * 5;
+    now.setMinutes(minute, 0, 0);
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -23,6 +38,16 @@ const AvailabilityCard = ({ onSlotCreated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const selectedStart = new Date(`${formData.date}T${formData.start_time}`);
+    if (!formData.date || !formData.start_time || selectedStart < new Date()) {
+      toast.error("Start time must be now or later.");
+      return;
+    }
+    if (!formData.end_time || formData.end_time <= formData.start_time) {
+      toast.error("End time must be after the start time.");
+      return;
+    }
 
     try {
       const res = await axios.post("/doctor/add-slot", formData, {
@@ -60,7 +85,7 @@ const AvailabilityCard = ({ onSlotCreated }) => {
         <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-xs text-gray-400">Start Time</label>
-            <input type="time" className="h-10 w-full rounded-xl border border-gray-200 px-3 text-sm outline-none focus:border-[#9b87f5]" name="start_time" value={formData.start_time} required onChange={handleChange} />
+            <input type="time" min={getEarliestTime()} className="h-10 w-full rounded-xl border border-gray-200 px-3 text-sm outline-none focus:border-[#9b87f5]" name="start_time" value={formData.start_time} required onChange={handleChange} />
           </div>
           <div>
             <label className="mb-1 block text-xs text-gray-400">End Time</label>
